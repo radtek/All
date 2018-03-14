@@ -7,6 +7,7 @@ import xlwt
 from xlutils.copy import copy
 import threading
 import random
+import string
 
 class Result:
     def __init__(self):
@@ -117,7 +118,9 @@ class SPiDerBaiDuNews:
             for i in range(len(url_list)):
                 content = self.load(url_list[i],user_agent,0,self.list[index],2014+i)
                 self.excl.list[index].num[i] = self.analysis(content)
-            print ('[%d---%s][%s]获取完毕').decode('utf-8').encode('gbk') %(index,self.list[index].decode('utf-8'),threadName)
+            print ('[%s][%4d] ') %(threadName,index),
+            print '%s' %self.list[index].decode('utf-8'),#%string.ljust(self.list[index].decode('utf-8'),20,' '),
+            print ' completed'
 
 
     def run(self):

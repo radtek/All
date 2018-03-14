@@ -10,7 +10,7 @@ import hashlib
 import re
 
 appid = '20180309000133299'   #需要自己申请 need to apply in http://api.fanyi.baidu.com/api/trans/product/desktop
-secretKey = 'xxxxxxxxxxxxxxx' #需要自己申请 need to apply in http://api.fanyi.baidu.com/api/trans/product/desktop
+secretKey = 'VDZlUclYn255xwCSi7X2' #需要自己申请 need to apply in http://api.fanyi.baidu.com/api/trans/product/desktop
 salt = random.randint(32768, 65536)
 tt = str(salt)
 
