@@ -1,0 +1,14 @@
+X-Swift-Savetime: Thu, 15 Mar 2018 10:12:43 GMT
+X-Swift-Cachetime: 60813
+X-Cache: HIT TCP_REFRESH_HIT dirn:0:62881325 mlen:-1
+Accept-Ranges: bytes
+Cache-Control: max-age=86400
+Eagleid: b7e8f6cb15211087632831575e
+Server: Tengine
+Last-Modified: Tue, 02 Jan 2018 14:46:48 GMT
+Etag: "5a4b9b58-17"
+Via: cache45.l2et15-2[0,304-0,H], cache18.l2et15-2[1,0], cache6.cn426[33,200-0,H], cache3.cn426[36,0]
+Date: Thu, 15 Mar 2018 03:06:16 GMT
+Content-Type: text/plain
+Age: 25587
+Timing-Allow-Origin: *

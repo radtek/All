@@ -1,0 +1,14 @@
+Via: cache5.l2et15-2[0,200-0,H], cache33.l2et15-2[1,0], cache1.cn426[37,200-0,M], cache4.cn426[38,0]
+X-Swift-Cachetime: 239
+X-Cache: MISS TCP_REFRESH_MISS dirn:0:228364655 mlen:-1
+X-Powered-By: PHP/5.5.9-1ubuntu4.22
+Eagleid: b7e8f6cc15211087634331103e
+Age: 361
+Content-Encoding: gzip
+Vary: Accept-Encoding
+Server: Tengine
+X-Swift-Savetime: Thu, 15 Mar 2018 10:12:43 GMT
+Cache-Control: max-age=600
+Date: Thu, 15 Mar 2018 10:06:42 GMT
+Content-Type: text/html; charset=UTF-8
+Timing-Allow-Origin: *

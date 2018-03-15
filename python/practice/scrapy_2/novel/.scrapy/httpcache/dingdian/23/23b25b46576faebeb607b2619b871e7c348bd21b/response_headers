@@ -1,0 +1,14 @@
+Via: cache29.l2st3-1[321,200-0,M], cache40.l2st3-1[323,0], cache5.cn426[0,200-0,H], cache3.cn426[10,0]
+X-Swift-Cachetime: 598
+X-Cache: HIT TCP_MEM_HIT dirn:-2:-2 mlen:-1
+X-Powered-By: PHP/5.5.9-1ubuntu4.22
+Eagleid: b7e8f6cb15211087634302783e
+Age: 371
+Content-Encoding: gzip
+Vary: Accept-Encoding
+Server: Tengine
+X-Swift-Savetime: Thu, 15 Mar 2018 10:06:34 GMT
+Cache-Control: max-age=600
+Date: Thu, 15 Mar 2018 10:06:32 GMT
+Content-Type: text/html; charset=UTF-8
+Timing-Allow-Origin: *
