@@ -1,0 +1,1924 @@
+1.内存数据库启动一直不动
+taskkill -f -im kcbpas.exe再重启
+
+2.lbmx
+1002 spd配置
+1004 方法未找到
+bp上报错一堆的入参 debug release混用 release 生成方式 -->md
+如果是jros可能是接口配置不正确，导致寻找的地方不对，比如lbm配置成了js，就会去func_map里面找，找不到，就1002
+2001 没找到.h文件没有设置
+
+3.定时任务
+taskvalid 开关总控 0-编辑 1-有效 2-暂停 3-终止 4-删除. 有效时，时间段等有效不是有效状态不能执行
+
+4.同步成功后 多次重复同步
+syncmem 表的信息不正确 应该要update syncmem 让lastsno更新为最新的sno
+
+5.No input variables have been defined in SQL statement
+变量绑定存在问题 ‘as’ 绑定 as 这种形式 是不行的
+
+6.无效的内存订单系统编号
+	nServerid = pJstpDatabaseMgr->GetJstpServerid();
+	if (nServerid <= 1)
+		BusRaiseException(9999, 1, "无效的内存订单系统编号");
+	未set 1
+	
+7.orglinkserver
+	导出的时候关联了orglinkserver，fund表里面的serverid为0
+	校验fundlinkserver --> fund 
+	校验orglinkserver --> orglinkserver
+	
+	1.委托时校验
+	2.同步到内存时，导出函数有问题
+	select c.fundid
+          from orglinkserver b, fundinfo c
+         where c.orgid = b.orgid
+           and b.serverid = :serverid < int >
+	
+8.指令下达和指令委托时 风控试算中 报 产品信息不存在
+原因：在新加产品时，产品信息没有同步到 内存中去
+解决：lhg协助解决，init_exportcfg.sql支持同步标志 未打开
+                   同步数据时，取serverid参照上一条取得，600570更改，送入serverid为0，不走送入serverid的逻辑判断，全部同步
+                  修改调用的spd   Sync2JstpMemDbByFixExt-->Sync2JstpMemDbByFix
+         
+9.委托下达 主键重复
+原因：修改了sysconfig中的日期，但委托下达按日期生成新的序号的时候，会和之前产生的序号重复
+
+
+10.tomcat启动 lbm 【2011】 bp没启动	
+
+11.
+[16:45:41.695][     7333318][4c80][601021]: BpCall(PRG=kesb::61000059, Flag=256)
+[16:45:41.697][     7335105][4c80][601021]: Lbm(index=0) Call BpRsOpen()=1 Error。
+异步call  没返回结果集
+
+12.系统日期和当前物理日期不一致
+修改了oracle日期，忘了做同步，导入到内存
+
+16.ORA-06550 PLS-00103出现符号 "在需要下列之一时 := . C@ % ;符号 ";
+原因sql脚本使用utf-8保存的，用工具直接读取脚本时，无法识别其中的字符
+复制 转换为 GBK就没事了
+
+17.kcbp 进程模式 无法调试
+
+18.serverid jstp_exe.exe 要配置为0，非0从org_linkserver查找，但是我们这边的这张表是空的
+
+19.exportcfg extrahandle 'C'默认 'S'代码中特殊处理 'H'只同步表头
+
+20.8888操作权限界面上和表中不一致，界面判断的是为8888，则取所有
+
+21.内存数据库修改大小 需要重新删掉建库目录
+
+22.内部撤单-->成交 来退还资金
+
+23.2001
+
+24.dll之间的依赖关系 一定要完整地编 可以避免很多错误
+debug和release        大改动的时候，特别要注意，不只是修改当前的dll，依赖于当前dll的那些也要替换
+	
+25.表同步 
+CAppServer::XA_Read xa_read_entry kesb failed return 2011 name 500970
+未找到正确的处理方式
+内存工厂反射模式 include头文件
+
+26.清空kcxp队列
+user system
+manager or manage
+emptyq -n oracle_sync
+
+
+22.两个 bp所在系统时间不一致，做委托同步一个成功了，一个没成功，做指令的时间 比较快的那个，在时间短的情况下，指令下达的有效开始时间比另一个系统时间还要快，所以判断为委托时间不在指令的有效时间
+		if (!(m_pTrdIDX->m_pSysconfig->m_nBusidate >= m_pTrdIDX->m_pInstruction->m_nValidbegindate && m_pTrdIDX->m_pSysconfig->m_nBusidate <= m_pTrdIDX->m_pInstruction->m_nValidenddate &&
+			m_pTrdIDX->m_pSysconfig->m_nPhyTime >= m_pTrdIDX->m_pInstruction->m_nValidbegintime && nOrdertime <= m_pTrdIDX->m_pInstruction->m_nValidendtime))
+		{
+			BusRaiseException(880100115, 1, "[%s]当前委托时间不符合指令时间范围。", m_pTrdIDX->m_pStock->m_szStkname);
+		}
+		
+23.部分成交的时候may存在 bug
+
+24.资金账号信息不存在
+组合持仓导入数据缺失 引用
+update combstkbal a set fundacct = (select fundacct from fundacctlink b where a.projectid = b.projectid)
+
+25.内部撤单的成交
+没用重新编dll
+
+26.修改sys_config 引起的主键冲突
+
+27.同步 可以研究几个解决方案
+
+28.oci
+
+29.KCBP_ERROR_DEPUTY_READ dll的问题 dll编的
+
+30.冻结证券和证券本身可能不一样 质押和债转股
+
+31.可交易指令的判断中，对指令判断的条件 ‘1，2，3’ 对应有效，已修改，已撤销 ，已撤销的指令还可以指令委托、
+
+32.指令证券表中的 委托成交状态判断
+
+			"       orderexcutestatus = case when (totalorderqty + td_orderqty + :orderqty<"KDT_STKQTY">) > instrqty  then (case when instrsno_modi != :instrsno_modi<"KDT_INT"> then '3' else 'x' end)"
+			"								 when (totalorderqty + td_orderqty + :orderqty<"KDT_STKQTY"> + :tradeunit<"KDT_INT">) > instrqty  then '3' "
+			"                                when (totalorderqty + td_orderqty + :orderqty<"KDT_STKQTY">) <= 0 then '1' "
+			"								 else  '2' end,	"
+			// 撤单时更新成交状态 撤单后如果委托完成则置成交完成
+			"       matchexecutestatus= case when :orderqty<"KDT_STKQTY"> < 0 and (totalorderqty + td_orderqty + :orderqty<"KDT_STKQTY"> + :tradeunit<"KDT_INT">) > instrqty and totalmatchqty + td_matchqty >= totalorderqty + td_orderqty + :orderqty<"KDT_STKQTY"> then '3' else matchexecutestatus end"
+			DB_OUTPUT("output Inserted.orderexcutestatus ")
+			
+	然后根据指令中各个指令证券的委托和成交状况来判断指令的委托状态
+
+33。业务
+指令下达的时候，会写 instrcombstkbal 只写主键，instrcombstkcapital 预买入金额和数量 instrprojectasset t1_prebuybal instrprojectcapital prebuybal
+指令委托     不写 combstkbal（已经写在instrcombstkbal）  写combstkcapital 预买入金额数量                          projectasset t1_prebuybal     projectcapital prebuybal instructstock 委托状态和成交状态 ---> 指令表的委托执行状态
+
+
+34.oracle sequence的cache和nocache，据说在高并发的情况，nocache会产生rowcache lock等待
+
+35.事务
+
+自治实物 不影响外层事务，单独commit，可用于事务的嵌套
+create or replace procedure autonomous_insert
+as
+pragma autonomous_transaction;
+begin
+insert into t values('autonomous insert');
+commit;
+end;
+
+使用自治事务来实现日志的打印，不会受到主事务回滚的影响
+
+36.Oracle
+select * from v$session_wait where wait_class<>'Idle'; 查看当前系统的等待事件
+select * from v$rowcache where cache# = &p1;           查看
+ execute dbms_workload_repository.create_snapshot;     手动获取系统快照
+ 
+37.oracle
+判断字段是否存在没有则添加
+declare  v_count int;
+begin
+select count(1) as a into v_count from user_tab_columns where table_name = 'STOCK' and column_name = 'bsflag';
+    if( v_count = 1) then 
+        execute immediate 'ALTER STOCK add COLUMN bsflag varchar2(1) not null';
+    end if;
+end;
+修改表结构
+alter table tb1 set column cl1 to cl2;
+alter table tb1 modify(column datatype [default value][null or not null]...);
+
+38.oracle事务隔离级别
+存在的问题
+幻想读  事务一按特定条件查找记录，事务二新增记录恰好满足事务一的查询条件，事务一再次查询的时候就会找到该记录，这条新纪录就是幻想读
+不可重复读  事务一读取一行记录，事务二对该记录做了更改，事务一再次查询的时候发现记录跟之前不一样，这就是不可重复读
+脏读    事务一更新了一行记录，未作提交，事务二查询到了，但是事务一roll back，此时，事务二查询到的记录就是脏读
+
+事务隔离级别
+READ UNCOMMITTED 幻想读、不可重复读和脏读都允许。
+READ COMMITTED 允许幻想读、不可重复读，不允许脏读
+REPEATABLE READ 允许幻想读，不允许不可重复读和脏读
+SERIALIZABLE 幻想读、不可重复读和脏读都不允许
+
+其中oracle支持的事务隔离级别有 read committed 和 serializable，所以oracle不支持脏读，默认是read committed，会产生幻想读和不可重复读
+
+
+39.高并发
+
+OLTP数据表（不同于OLAP数据表）一般都要有主键，对于大并发系统，不要用sequence作为主键。这是因为，索引是有序存储的，默认是按升序存储。
+在大并发情况下，很多进程进行insert操作，索引要进行更新，如果用sequence作为主键，索引更新就会集中在最大的那个索引块。
+索引块更新是排它的而不是共享的，很多进程同时更新，同一时间只能有一个进程执行更新，这就造成了排队，从而性能下降。
+解决方法可以使用uuid等方式，只要不是递增的就行，使更新分散在多索引块上。
+
+40.oracle 外键
+外键的使用有利有弊，金证的投资交易系统是不存在外键的，使用外键可以保证数据的完整性和一致性，让表与表之间的关系更加的清晰，同时能够
+约束开发人员避免一些会导致数据不完整的操作
+但是使用了外键的话，进行数据操作的时候，必然需要验证这个约束，在数据量大的情况下，会翻倍地降低系统的性能
+
+41.oracle 锁
+
+排它和共享：排他不允许再加别的锁，共享可以继续加共享锁，获得共享锁的事务只可以读取数据而不能修改，获得排它锁的既可以修改又可以读取
+
+oracle锁分为3类：
+DML锁（data locks，数据锁），用于保护数据的完整性；
+DDL锁（dictionary locks，字典锁），用于保护数据库对象的结构，如表、索引等的结构定义；
+内部锁和闩（internal locks and latches），保护数据库的内部结构。
+
+dml锁分为 tm和tx
+TM锁（表级锁） 和 TX锁（行级锁）
+会先添加表级锁，再自动添加行级锁
+
+TM:
+0 none 
+1 NULL
+  空
+  Select（查询是无需加锁的，故可以在已存在排它锁的情况下查询）普通的查询语句是不加锁的，除非是 select for update select for update nowait /wait %d。。
+2
+  SS(Row-S)
+  行级共享锁，其他对象只能查询这些数据行
+  Select for update、Lock for update、Lock row share(select for update 验证是3 Row-x oracle 8i和9i 据说是 Row-s)
+3
+  SX(Row-X)
+  行级排它锁，在提交前不允许做DML操作
+  Insert、Update、Delete、Lock row share
+4
+  S(Share)
+  共享锁
+  Create index、Lock share
+5
+  SSX(S/Row-X)
+  共享行级排它锁
+  Lock share row exclusive
+6
+  X(Exclusive)
+  排它锁
+  Alter table、Drop able、Drop index、Truncate table 、Lock exclusive
+  
+TX:
+只有排它锁x没有共享锁s
+tx的本质是transaction（事务），当一个事务执行数据更改的时候，就会获得一个tx锁，直到事务结束才释放。一个tx锁是可以对应多个被该事务
+锁住的数据行，在oracle的每个数据行上有一个标志位来表示该行数据是否被锁住。
+
+当Oracle执行DML语句时，系统自动在所要操作的表上申请TM类型的锁。当TM锁获得后，系统再自动申请TX类型的锁，
+并将实际锁定的数据行的锁标志位进行置位。这样在事务加锁前检查TX锁相容性时就不用再逐行检查锁标志，
+而只需检查TM锁模式的相容性即可，大大提高了系统的效率。 
+
+TX的本义是Transaction（事务），当一个事务第一次执行数据更改（Insert、Update、Delete）或使用SELECT… FOR UPDATE语句进行查询时，
+它即获得一个TX（事务）锁，直至该事务结束（执行COMMIT或ROLLBACK操作）时，该锁才被释放。所以，一个TX锁，可以对应多个被该事务锁定的数据
+行（在我们用的时候多是启动一个事务，然后SELECT… FOR UPDATE NOWAIT）。   
+在Oracle的每行数据上，都有一个标志位来表示该行数据是否被锁定。Oracle不像DB2那样，建立一个链表来维护每一行被加锁的数据，
+这样就大大减小了行级锁的维护开销，也在很大程度上避免了类似DB2使用行级锁时经常发生的锁数量不够而进行锁升级的情况。
+数据行上的锁标志一旦被置位，就表明该行数据被加X锁，Oracle在数据行上没有S锁。
+
+一个事务可以有多个TM，但是只有一个TX
+
+42.组播技术
+ip通信的三种机制：
+源主机和目的主机单对单的通信，单播（需要发送给多个目标时需要重复发送ip包）
+源主机和同一网段中的所有其它主机之间点对多点，广播（不能跨网段，会发送给同一网段中所有主机）
+将数据包以尽力传送的形式发送到某个确定的节点集合，组播（组播源只需要发送一份数据包给组播地址即可）
+
+组播地址：1110 xxxx.xxxx xxxx.xxxx xxxx.xxxx xxxx 即 224.0.0.0 -- 239.255.255.255
+224.0.0.0---224.0.0.255预留地址
+224.0.1.0---238.255.255.255用户组播地址（全网范围，这个区间也有一些地址被预留，224.0.1.1被预留给NTP（Network Time Protocol，网络时间协议）所使用）
+239.0.0.0---239.255.255.255本地组播地址
+
+
+43.并发场景下 before触发器加序列产生的序号的一个现象。
+当oracle触发器与序列和锁汇集到一起的时候，会触发一些有趣的现象
+先说说不同会话中的sequence currval和nextval值吧
+在使用currval之前，必须在当前会话或者事务中先使用nextval，同时当前会话中的currval不受其它会话的影响，一直保持不变，除非调用nextval就会取到最新值
+http://blog.csdn.net/aricover/article/details/73469233
+
+44.
+作者：成隽
+链接：https://www.zhihu.com/question/23534399/answer/26064957
+
+1.选Linux不管你打算学C，C++，JAVA，LISP，Scheme，Opengl，统统选Linux。除非你要做Window的客户端和DirectX游戏。
+2.强迫自己写个最简单的Ftp或Http服务器，然后把并发容量做到单机1w中间你能学会读标准，网络接口，队列，回调设计，内存管理，
+异常处理原则和性能定位工具的使用（别用已有网络库，只依赖系统调用）。别在软件工程这类鸡汤上浪费时间。把gdb和windbg的使用作为最重要的技能发展。
+3.做到2，你已经能灭掉市面上大多数30岁左右的面试官和不少35岁以下的面试官。
+如果你能在面试前看完下面的书：计算机程序的构造和解释软件调试深入理解计算机系统程序员的自我修养基本上你和牛逼面试官的差距就只在：
+数据库分布式理论架构项目管理某些工业语言而其他方面都不吃亏，甚至会占优。
+上面这些会真正让你在技术上变强，兼顾职业发展。只要有机会，就经常自己造轮子，和造轮子无用党比，过几年会发现你能轻易看到他们看不到的风险。
+你能轻易做到他们认为做不到的事。你能更容易认识到很多问题的本质，而且并不只局限在软件技术层面。
+追逐某些大公司的职位而建立知识体系其实是很短视的，可惜我很晚才明白这个道理。
+还有最重要一点，你足够聪明又能吃苦，又想赚大钱，这个方向的投入和回报会很容易让你灰心
+
+
+45.
+C++列表初始化规则：
+1.static在类外初始化，const static 只有int型的可以在类中定义的时候初始化（gcc支持，好像vc6不支持），其他类型要在类外初始化
+2.引用和const类型必须在列表中初始化，否则会报错（引用和const类型都是在声明的时候就需要初始化）
+3.列表初始化先于构造函数函数体中的执行
+4.普通的成员变量尽量在列表中初始化，可以提高性能，复杂运算的，放在构造函数中初始化。
+5.列表初始化的顺序，不是左到右，也不是右到左，取决于声明的顺序。
+
+#include<iostream>
+using namespace std;
+class A{
+public:
+	A(int a):a(a),c(a){
+	    cout<<this->a<<endl;
+	}
+private:
+	int a;
+	static int b;
+	int &c;
+public:
+	const static int d = 0;
+};
+int A::b = 3;
+int main(){
+    A(4);
+    return 0;
+}
+
+
+46.svn cleanup failed–previous operation has not finished; run cleanup if it was interrupted
+sqlite .svn/wc.db “select * from work_queue”
+delete from work_queue;
+
+47.一次惊险刺激的删库
+SQL> conn kamt/kamt as sysdba
+已连接。
+SQL> shutdown normal
+ORA-01109: 数据库未打开
+
+
+已经卸载数据库。
+ORACLE 例程已经关闭。
+SQL> startup mount
+ORACLE 例程已经启动。
+
+Total System Global Area 3390558208 bytes
+Fixed Size                  2180464 bytes
+Variable Size            2483030672 bytes
+Database Buffers          889192448 bytes
+Redo Buffers               16154624 bytes
+数据库装载完毕。
+SQL> alter database open
+  2  ;
+alter database open
+*
+第 1 行出现错误:
+ORA-01157: 无法标识/锁定数据文件 6 - 请参阅 DBWR 跟踪文件
+ORA-01110: 数据文件 6: 'D:\ORACLE-DATA\TS_KAMSDATA.DBF'
+
+
+SQL> alter database open;
+alter database open
+*
+第 1 行出现错误:
+ORA-01157: 无法标识/锁定数据文件 6 - 请参阅 DBWR 跟踪文件
+ORA-01110: 数据文件 6: 'D:\ORACLE-DATA\TS_KAMSDATA.DBF'
+
+-----------找到原因，手贱把数据文件给删除了，垃圾箱找回文件，启动成功
+SQL> alter database open;
+
+数据库已更改。
+
+
+
+
+48. 数据库用户被锁 bp错误密码登录
+1、用dba角色的用户登陆，进行解锁，先设置具体时间格式，以便查看具体时间
+　　SQL> alter session set nls_date_format=’yyyy-mm-dd hh24:mi:ss’;
+　　Session altered.
+　　2、查看具体的被锁时间
+　　SQL> select username,lock_date from dba_users where username=’TEST’;
+　　USERNAME LOCK_DATE
+　　------------------------------ -------------------
+　　TEST 2009-03-10 08:51:03
+　　3、解锁
+　　SQL> alter user test account unlock;
+　　User altered.
+　　4、查看是那个ip造成的test用户被锁
+
+　　查看$ORACLE_HOME/network/admin/log/listener.log日志
+　　10-MAR-2009 08:51:03 * (CONNECT_DATA=(SID=lhoms)(SERVER=DEDICATED)(CID=(PROGRAM=oracle)(HOST=omstestdb)(USER=oraoms))) * (ADDRESS=(PROTOCOL=tcp)(HOST=10.69.1.11)(PORT=49434)) * establish * lhoms * 0
+　　10-MAR-2009 08:51:03 * (CONNECT_DATA=(SID=lhoms)(SERVER=DEDICATED)(CID=(PROGRAM=oracle)(HOST=omstestdb)(USER=oraoms))) * (ADDRESS=(PROTOCOL=tcp)(HOST=10.69.1.11)(PORT=49435)) * establish * lhoms * 0
+
+修改：
+一般数据库默认是10次尝试失败后锁住用户
+　　1、查看FAILED_LOGIN_ATTEMPTS的值
+　　select * from dba_profiles
+　　2、修改为30次
+　　alter profile default limit FAILED_LOGIN_ATTEMPTS 30;
+　　3、修改为无限次（为安全起见，不建议使用）
+　　alter profile default limit FAILED_LOGIN_ATTEMPTS unlimited;
+
+
+49.sizeof
+sizeof 不是一个函数，可能是一个特殊的宏，在编译阶段就已经求值
+
+50.oracle 序列采用cache的话，如果断电或者别的原因可能会导致序号不连续，oracle已经说明了
+
+51.sizeof
+char *a 和char a[] 的sizeof不同 指针就是4，而数组名是根据实际声明时分配的大小来的，取字符数组中的字符长度用strlen
+
+52.WIN32和_WIN32
+vs13 _WIN32
+
+
+53.一次宏引起的错误
+#ifndef max
+#define max(a,b)            (((a) > (b)) ? (a) : (b))
+#endif
+
+    mcParam.nPort = 8200；
+		mcParam.nPort = max((++mcParam.nPort % 65536), 1);
+		最后得到的值 为8202；
+		++优先级高于 %
+		宏就是替换 所以其实是max（++mcParam.nPort % 65536 > 1）? ++mcParam.nPort % 65536 : 1
+		所以自加了两遍
+		
+		
+54.XML
+xmlXML实体中不允许出现"&","<",">"等特殊字符,否则XML语法检查时将出错,如果编写的XML文件必须包含这些字符,则必须分别写成"&amp;","&lt;","&gt;"再写入文件中。
+需要注意的是： 
+a. 转义序列各字符间不能有空格； 
+b. 转义序列必须以"；"结束； 
+c. 单独的&不被认为是转义开始； 
+d. 区分大小写。 
+
+以下是XML中需要的转义字符:[/size] 
+&(逻辑与)  &amp;        
+<(小于)    &lt;        
+>(大于)    &gt;        
+"(双引号)  &quot;      
+'(单引号)  &apos; [/size]
+
+
+55.设置图标
+1.在项目文件夹里创建名为*.rc的文件，如myapp.rc。
+ 2.文件中写入IDI_ICON1 ICON DISCARDABLE "myapp.ico"
+   其中，myapp.ico为图标的文件名。
+ 3.将文件myapp.ico拷贝到项目文件夹内。
+ 4.在解决方案资源管理器中，右键点击项目，添加myapp.rc及myapp.ico。
+ 5.重新生成解决方案
+ 
+56.Qt对中文的支持
+大多数时候，都可以 QString::fromlocal8bit()来获得转换
+QSettings的支持做的不是很好，当文件已经是GBK格式编码的时候，直接取value(),此时是QVaiant 转换为 QBytearray 读取就会有问题，再怎么转换也还是乱码
+而如果不在 写入的时候，
+		m_pSettings->setIniCodec("GBK");
+		m_pSettings->setValue(column, value);
+		以GBK写入，那存储到文件里面的就会是乱码
+为了解决这个问题，用了QSetting的写，而读取是通过标准库的文件流遍历来实现的
+通过标准库的文件流 取到string-->char *-->QString::fromlocal8bit或者直接 QString::FromStdString()基本上是没问题的
+
+
+57.
+<span class="RichText CopyrightRichText-richText" itemprop="text"><p>先开门见山：银行体系存款准备金制度的真实运行模式。
+</p><p>答主今年选修了一门人民银行货币政策司很nice的高层领导的课程，感觉受益匪浅，算是明白了货币政策的真实运行机制。
+其中，准备金制度在实际中是如何运行的，着实让答主惊奇地发现之前的认识，也很有可能是绝大多数人的认识，以及市面上许多货币银行学教科书对此的解释，
+是错误的。（注：下述内容与举例均为那位领导授课时讲的内容，读者不必怀疑答主为自圆其说而编造例子。那位领导上课时就说到，其实现在许多教科书都编错了。
+）</p><p>Q1：商业银行所上缴的准备金，其来源是哪里？<br>Q2：中央银行是如何控制商业银行贷款扩张的？
+</p><p>看到这两个“司空见惯”的问题，即便是一些金融学专业出身的同学，可能也会信誓旦旦地做出大概类似于下述观点的回答（以下内容中“银行”专指商业银行）
+：</p><p>A1：准备金来自银行所吸纳的存款，银行从存款中拿出一部分上缴到开在央行的准备金账户；
+<br>A2：央行规定存贷比，银行贷款不能超过存款的一定比例。</p><p>如果读者对上述Q1与Q2的理解类似于A1与A2，那么接下来，就是见证大开眼界的时候了——</p>
+<p>首先有一个大前提，不论你信或不信，都必须接受——<br>“现代货币制度是信用货币制度，所以是贷款创造存款。即：在信用货币时代，世界上先有的是一笔贷款，
+之后这笔贷款自动创造出了等额的存款。”</p><p>一看到这个大前提，估计有许多人就会表示疑惑：难道不应该是先有一个客户甲存款，然后客户乙向银行申请贷款，银行把这笔存款借给乙，于是才产生的贷款吗？</p><p>实际上，这种思维还停留在实物货币时代：因为这种思维相当于默许了“货币发行准备”这个概念的存在（能放贷款是因为银行有一笔存款作为放款保证）。然而信用货币时代，货币完全是凭当（政）局（府）的信用发行的，换言之，信用货币相当于“凭空产生”，可以发行任意多。</p><p>好，前期铺垫差不多了。下面我们就来看看央行在实际操作中，是如何实践准备金制度的。</p><p>正确A1：全部的准备金都是银行向央行借来的，没有一分钱的存款被用来上缴准备金。</p><p>举个例子：B是这个世界上的第一家银行，除了必要的办公地点、人员与设备，它现在两手空空，什么都没有。这时候，第一个客户甲来B申请一笔100元的贷款，B在对甲进行资信等状况的审核后，（凭空）借给了甲100元，并打在了甲开在B的账户上。于是B的资产（贷款）与负债（存款）同时扩张了100元（但很显然是因为有了贷款，才“顺便”带来了存款。）。但是央行C规定，所有存款都得上缴准备金，并规定法定存准率为5%。显然，B要上缴100*5%=5元的法定存准金。</p><p>问题的关键来了：B放到C的这5元法定存准金，是来自于哪儿呢？按照A1，是B从100元存款中拿出5元上缴给C。但其实在实务中，央行有明文规定，存款不得用于缴纳准备金。</p><p>令人大开眼界是事实是：B向C申请借款10元，并将这10元就直接放在B开在C的准备金账户里，其中5元作为法定存准金而存在，剩余5元作为超额准备金而存在（具体向C借多少取决于B的意愿）。例子说完。</p><p>读到这儿你可能会想：好家伙！这不是空手套白狼么？央行向银行收的准备金，居然是央行借给银行的？而且还直接就放在银行开在央行的账户，相当于央行就是动了动嘴皮子说，好了我已经给你10元了，就把神圣的、对金融稳定有着重大影响的准备金缴上了？对，就是这样，不用怀疑，实务中就是这么操作的（当然是配合着电子记账的）。</p><p>答主认为有些读者读到这儿会惊叹：那存款准备金还有什么意义？全是空中楼阁啊！</p><p>是时候回答Q2了。</p><p>正确A2：央行通过存款准备金制度控制银行的贷款扩张。</p><p>根据那个大前提，信用货币制度下，只要没有外力约束，银行可以创造任意多的货币（一直发贷款就好了，贷款自动创造等额存款）。而存款准备金制度，正是这个所谓的“外力约束”。</p><p>同样先举一个例子：接着刚才那个例子说。B现在还有5元的超额准备金。这时，第二个客户乙也向B申请贷款，贷款金额为200元。B审核合格后，借给了乙200元，并以乙开在B的账户上的存款的形式呈现。现在，B一共创造了100+200=300元的存款，需要上缴法定存准金300*5%=15元。</p><p>这时B发现，为了满足法定存准金需要，不但放款前趴在C账户里的5元超额准备金被消耗掉了（转化为法定存准金了），而且还不够，还有5元的法定存准金缺口。于是，为了满足监管（外力约束）的需要，B不得不再次向C申请借入20元（申请金额完全取决于B的意愿。注意向央行借款也是要付利息的，B在决定借多少钱之前，应仔细考察超额准备金的便利性与借款利息成本之间的权衡）。</p><p>如果C顺利地满足了B的借款申请，那么对B来说两全其美：既满足了监管需要（缴足了法定存准金），还多出来20-5=15元的超额准备金，这15元超额准备金可以支持B再放贷15/5%=300元（自动产生存款300元）。例子说完。</p><p>问题的关键又来了：如果在上例中，C不同意再借给B哪怕1元钱了呢？</p><p>显然此时银行就无法通过向央行<p>问题的关键又来了：如果央行对所有银行都收紧了借款供应，从而多数银行都处于准备金短缺状态了呢？</p><p>答案就是2013年6月份的“钱荒”，银行间同业市场利率暴涨至看似令人无法理解的高度。因为大家都借不到钱了。</p><p>所以，央行正是通过准备金制度，来控制银行的贷款扩张。只要央行表态说，最近要控制信贷过快增长，<u>银行就会知道央行不会那么轻易地满足银行的借款需求了</u>，
+为了满足法定存准金要求，银行就自动地不敢多贷款了，以免超额准备金被快速耗尽。否则，届时因法定存准金不足而被约谈甚至整改的惩罚在所难免。
+</p><p>顺便说一句，所谓的“银行体系流动性”，专指银行的超额准备金，而不是银行的存款或现金或其他。所以上一段中标注了下划线
+<span class="RichText CopyrightRichText-richText" itemprop="text"><p>先开门见山：银行体系存款准备金制度的真实运行模式。
+</p><p>答主今年选修了一门人民银行货币政策司很nice的高层领导的课程，感觉受益匪浅，算是明白了货币政策的真实运行机制。
+其中，准备金制度在实际中是如何运行的，着实让答主惊奇地发现之前的认识，也很有可能是绝大多数人的认识，以及市面上许多货币银行学教科书对此的解释，
+是错误的。（注：下述内容与举例均为那位领导授课时讲的内容，读者不必怀疑答主为自圆其说而编造例子。
+那位领导上课时就说到，其实现在许多教科书都编错了。）</p><p>Q1：商业银行所上缴的准备金，其来源是哪里？
+<br>Q2：中央银行是如何控制商业银行贷款扩张的？</p><p>看到这两个“司空见惯”的问题，即便是一些金融学专业出身的同学，可能也会信誓旦旦地做出大概类似于
+下述观点的回答（以下内容中“银行”专指商业银行）：</p><p>A1：准备金来自银行所吸纳的存款，银行从存款中拿出一部分上缴到开在央行的准备金账户；
+<br>A2：央行规定存贷比，银行贷款不能超过存款的一定比例。</p><p>如果读者对上述Q1与Q2的理解类似于A1与A2，那么接下来，就是见证大开眼界的时候了——
+</p><p>首先有一个大前提，不论你信或不信，都必须接受——<br>“现代货币制度是信用货币制度，所以是贷款创造存款。即：在信用货币时代，世界上先有的是一
+笔贷款，之后这笔贷款自动创造出了等额的存款。”</p><p>一看到这个大前提，估计有许多人就会表示疑惑：难道不应该是先有一个客户甲存款，然后客户乙向银行
+申请贷款，银行把这笔存款借给乙，于是才产生的贷款吗？</p><p>实际上，这种思维还停留在实物货币时代：因为这种思维相当于默许了“货币发行准备”这个概念
+的存在（能放贷款是因为银行有一笔存款作为放款保证）。然而信用货币时代，货币完全是凭当（政）局（府）的信用发行的，换言之，信用货币相当于“凭空产生”，
+可以发行任意多。</p><p>好，前期铺垫差不多了。下面我们就来看看央行在实际操作中，是如何实践准备金制度的。</p><p>正确A1：全部的准备金都是银行向央行
+借来的，没有一分钱的存款被用来上缴准备金。</p><p>举个例子：B是这个世界上的第一家银行，除了必要的办公地点、人员与设备，它现在两手空空，什么都没有
+。这时候，第一个客户甲来B申请一笔100元的贷款，B在对甲进行资信等状况的审核后，（凭空）借给了甲100元，并打在了甲开在B的账户上。于是B的资产（贷款）
+与负债（存款）同时扩张了100元（但很显然是因为有了贷款，才“顺便”带来了存款。）。但是央行C规定，所有存款都得上缴准备金，并规定法定存准率为5%。显然
+，B要上缴100*5%=5元的法定存准金。</p><p>问题的关键来了：B放到C的这5元法定存准金，是来自于哪儿呢？按照A1，是B从100元存款中拿出5元上缴给C。
+但其实在实务中，央行有明文规定，存款不得用于缴纳准备金。</p><p>令人大开眼界是事实是：B向C申请借款10元，并将这10元就直接放在B开在C的准备金账户里，
+其中5元作为法定存准金而存在，剩余5元作为超额准备金而存在（具体向C借多少取决于B的意愿）。例子说完。</p><p>读到这儿你可能会想：好家伙！
+这不是空手套白狼么？央行向银行收的准备金，居然是央行借给银行的？而且还直接就放在银行开在央行的账户，相当于央行就是动了动嘴皮子说，
+好了我已经给你10元了，就把神圣的、对金融稳定有着重大影响的准备金缴上了？对，就是这样，不用怀疑，实务中就是这么操作的（当然是配合着电子记账的）
+。</p><p>答主认为有些读者读到这儿会惊叹：那存款准备金还有什么意义？全是空中楼阁啊！</p><p>是时候回答Q2了。</p><p>正确A2：
+央行通过存款准备金制度控制银行的贷款扩张。</p><p>根据那个大前提，信用货币制度下，只要没有外力约束，银行可以创造任意多的货币
+（一直发贷款就好了，贷款自动创造等额存款）。而存款准备金制度，正是这个所谓的“外力约束”。</p><p>同样先举一个例子：接着刚才那个例子说。
+B现在还有5元的超额准备金。这时，第二个客户乙也向B申请贷款，贷款金额为200元。B审核合格后，借给了乙200元，并以乙开在B的账户上的存款的形式呈现。
+现在，B一共创造了100+200=300元的存款，需要上缴法定存准金300*5%=15元。</p><p>这时B发现，为了满足法定存准金需要，
+不但放款前趴在C账户里的5元超额准备金被消耗掉了（转化为法定存准金了），而且还不够，还有5元的法定存准金缺口。于是，为了满足监管（外力约束）的需要，
+B不得不再次向C申请借入20元（申请金额完全取决于B的意愿。注意向央行借款也是要付利息的，B在决定借多少钱之前，
+应仔细考察超额准备金的便利性与借款利息成本之间的权衡）。</p><p>如果C顺利地满足了B的借款申请，那么对B来说两全其美：既满足了监管需要（缴足了法定存准金），还多出来20-5=15元的超额准备金，这15元超额准备金可以支持B再放贷15/5%=300元（自动产生存款300元）。例子说完。</p><p>问题的关键又来了：如果在上例中，C不同意再借给B哪怕1元钱了呢？</p><p>显然此时银行就无法通过向央行借款的途径来满足监管需要了，于是银行被迫去银行间同业市场拆借其他银行的“闲钱”，以满足法定存准金需求。</p><p>问题的关键又来了：如果央行对所有银行都收紧了借款供应，从而多数银行都处于准备金短缺状态了呢？</p><p>答案就是2013年6月份的“钱荒”，银行间同业市场利率暴涨至看似令人无法理解的高度。因为大家都借不到钱了。</p><p>所以，央行正是通过准备金制度，来控制银行的贷款扩张。只要央行表态说，最近要控制信贷过快增长，<u>银行就会知道央行不会那么轻易地满足银行的借款需求了</u>，为了满足法定存准金要求，银行就自动地不敢多贷款了，以免超额准备金被快速耗尽。否则，届时因法定存准金不足而被约谈甚至整改的惩罚在所难免。</p><p>顺便说一句，所谓的“银行体系流动性”，专指银行的超额准备金，而不是银行的存款或现金或其他。所以上一段中标注了下划线的那句话，说得专业点儿就是：央行不再无条件满足银行的流动性需求。</p>这才是银行体系准备金制度的真实运行模式及其存在意义。</span>的那句话，说得专业点儿就是：央行不再无条件满足银行的流动性需求。</p>这才是银行体系准备金制度的真实运行模式及其存在意义。</span>
+
+
+58.
+1.走出低层次的逻辑闭环。总会有这样一群人，在还没有见过太大市面，没有经历过太多波折，没有承担过很重的责任的时候，就早早形成了一套低层次的逻辑闭环。在这个闭环中，TA 永远正确，而且无法被说服。TA 在这个逻辑闭环里深深的自我反馈，不断强化这个意识，于是失去了在思考力上更进一步的可能，更可怕的是 TA 自己会觉得自己很成熟。举一个例子，一件事情看上去做不成的概率更大一些，于是有的人会预设这件事情做不成，然后开始消极对待慢慢减少投入，最后这件事情果然没有做成，TA 会庆幸自己的眼光和判断，降低了自己的投入成本。于是 TA 在下一件事的时候也会继续这样的判断过程，周而复始。底层次的逻辑闭环会阻碍一个人领导力的建设，TA 将无法学习到更高维度的东西。一个更好的逻辑模式是螺旋上升的，同时并不原地头尾相连，保持一个开放的心态。
+
+2.面对低概率事件，把自己当成变量。没有领导力的人会下意识的喜欢 "客观" 看待问题，把自己置身事外去考虑，于是经常得出结论这事办不到，太难了，不可能，然后 TA 就退缩了。但有领导力的人在面对这样的低概率事件的时候，总会把自己放进去，"换了别人也许这事就真的挂了，但我能起到什么作用来扭转呢"。这在体育比赛里特别明显。NBA 总决赛，经常会根据前几场的比分来算最终获胜的概率。很多 1-3 落后的球队往往就放弃了，因为历史上就没有在这个比分上翻盘的，结果 16 年的骑士绝地反击，从 1-3 打到 4-3 夺得总冠军，成为了历史上的第一次。这就是领导力的力量，永远把自己当成变量因子。
+
+3.知道你需要谁，TA 需要什么。所谓 "领导" 其实是全方位的，不仅向下需要领导，向上也可以领导，平级协作也可以领导。而这里面最关键的思维就是: 你知道 TA 需要什么。很多人无法有效建立领导力的原因是: TA 总是在思考自己需要什么，然后想需要谁来帮助实现，却不关注这个人的需求。把自己的需求凌驾于别人的需求之上，注定是无法长期获得自己的需求满足的。真正有领导力的人深知这一点，所以 TA 会思考那些可以帮助到自己实现愿景和梦想的人，他们的愿景和梦想是什么，怎么可以先满足他们，这样他们必然反过来会实现自己的。所以管理上级很简单，想一想 TA 在关注什么事情有什么样的需求。所以管理平级的协作团队也很简单，想一想他们每天在为什么事情操心还有哪些业绩没有完成。所以管理自己的团队就更加简单了，想明白他们为什么跟着你干。
+
+4.激发，而不是管理。要相信每一个人心中都有一团火把他们和别人区别开来，找到它，点燃它。领导力的最高境界是不管理的，只要尽情的激发。只有每一个人都可以参与，每一个人的想法都得到尊重，这样的团队能量才会是巨大的。有一份报告称，激发潜力的团队与自上而下管理的团队，效率产出可以差到 60 % 以上。所以好的领导力的人，会深入了解每一个团队成员，发现 TA 与众不同的地方，发现 TA 心中的英雄梦想。并且把这样的渴望与实际工作相结合，引导到具体工作上，并通过好的结果和产出强化了这种正向反馈，于是激发导致好结果，好结果导致信任，信任导致进一步的激发。
+
+5.人们只信服一种人-欣赏和喜欢他们的人。说服力是一种奇妙的力量，似乎总是只有少数人才拥有这样的魔力。美国曾经出过一位世界级的汽车销售员，被称为魔鬼销售员，他在某一年的业绩是同行的 30 倍之多，很多媒体向他询问销售秘密的时候，他只说了一句话: 我告诉我的每一位潜在客户-我喜欢你。是的，就是这么简单，又充满了魔力。这也揭示了一个心理学上的常识: 人们更容易被喜欢自己的人说服。所以领导力的边界就是你可以喜欢这个世界的边界。你喜欢和欣赏的人越多，你的领导力的触角就越广阔。善于发现人的闪光点，几乎是每一位优秀领导力者的必备能力。
+
+6.领导力只可能在逆境和危机中锻炼。不是说在顺境中就不能去建设领导力，而是这样的领导力是没有被检验过的。因为惯性，或者势能，亦或者趋势的力量，这个时期的领导力是结构性先天不足的，因为很难去判断到底是什么因素在起决定性作用。只有到了逆境和危机时刻的时候，领导力的锻炼才是真正开始。这个时候所有的变量都是恶化的，都是消极的，都是向下趋势的，这个时候还能力挽狂澜，才是真正的领导力。2000 年回归苹果的乔布斯，就是典型的领导力爆棚的代表，把一个几乎快要倒闭的企业，带到了世界第一宇宙之王。领导力，不是后来居上，而是王者归来。
+
+7.吃亏和牺牲精神是领导力的核心。精致的利己主义者为什么有时候什么都很好，家世好，学习好，工作好，但就是没有强大的领导力呢？因为他们从来不吃亏和自我牺牲。领导力的本质不是关于自己，而是关于他人。所以只看到自己，只想着自己的人，是不会有人去追随的。短期内从不吃亏的人在长线上是吃了大亏的。美国 500 强的企业 CEO，毕业于西点军校的人数是最多的，这一点跟很多人的直觉不一样。商业不应该是更多商学院的天下吗？后来一个机构调研了好几年之后发了一篇论文: 正是因为军队强调的牺牲精神和利他主义，使得这些人离开军队之后，比其他领域的人更容易建立起领导力，从而更加容易在商业上取得成功。
+
+8.真正的领导是不可能被任命的，而是由团队集体追认。这是一个很多职场人的经典误解: 因为我没有在这个位置上，没有这个权利，没有这个头衔，所以我无法施展我的领导力。这里的误解主要来自于 TA 认为领导力是一种权威命令，强制的，服从的，自上而下的。但如果经验丰富的人就明白，头衔可以让你成为管理者，但真正让你成为领导者的，是你的团队成员。这种反向追认机制是一个无形的手，决定着领导者的真正前途。所以，不要去追求一个位置和头衔，在你获得真正匹配它的领导力之前，这些东西根本帮助不到你任何事情，甚至只可能有害于你的领导力建设。
+
+9.犯错也是成长的一部分，要接受它。很多人是犯错厌恶型，他们害怕失败，害怕付出没有回报，这样的人是很难建立强大的领导力的。犯错是领导力的一部分，必须接受它。这里包括一个很棒的下属因为你的失职而萌生退意，给一个非常信任你的合作伙伴造成损失，一个赏识你的领导把一个重要事情交给你结果搞砸了。大多数有意识培养自己领导力的人，也许不会倒在困难面前，也许不会倒在逆境之下，但他们会因为自己的失误或者错误，而自我否定和放弃，挫败商不够高。领导力道路上的每一步，无论成与败，都是算数的，没有一步是多余的，接受它。
+
+10.毕竟只有少数人可以成为有领导力的人，所以你不能期待与大多数人一样。很遗憾，真正拥有领导力的人还是少数，这就意味着能走过这条漫漫之旅的人，是少数派。所以孤独，寂寞，不被理解，是必修课。如果所有人都理解你的所作所为，都赞同你的每一步选择，这件事本身就大众化了。一位投资界的传奇人物曾对公司里的投资新人们传授经验: 如果你每天都跟同行混在一起，听大家的观点，用大家都用的模型。做大家都会做的决定，你怎么才能赚到钱呢？所以，不惧怕变成异类，不惧怕与大多数人做对手盘，这才是修得领导力的真谛。
+
+11.领导力是可以在后天刻意培养的。如果你不相信这一条，上面十条都是没有用的了。
+
+ps：以上关于领导力的感悟来源于过去三年经营 Ping++ 的真实感悟。
+
+
+
+59.oracle 取工作日的一个例子，oracle date相关数据类型和函数
+1.date直接加减
+2.currentdate
+3.to_number(to_char(date,'yyyymmdd'))之间的各种转换
+
+declare
+ndate date;
+weekday varchar2(10);
+strsql varchar2(1024);
+begin
+   select to_date(to_char(current_date,'yyyymmdd'),'yyyymmdd') into ndate from dual;
+  while (ndate < to_date(20180101,'yyyymmdd')) loop
+      select to_char(ndate,'day') into weekday  from dual;
+      if (weekday <> '星期六' and weekday <> '星期日' and weekday is not null) then
+        strsql:= 'insert into sys_workcalendar(phydate,markets) values(:1,''1,2'')';
+      elsif (weekday is not null) then
+        strsql:= 'insert into sys_workcalendar(phydate,markets) values(:1,''0,0'')';
+      end if;
+      EXECUTE IMMEDIATE strsql USING to_number(to_char(ndate,'yyyymmdd'));
+      ndate := ndate + 1;
+  end loop;
+end;
+
+
+60.
+两个类引用，可以提前声明，但是不能再类中直接用来定义对象和调用方法，可以用来声明引用和指针。
+两个文件相互include，同上，可以提前声明，但是不能直接定义另一个文件中的对象或者调用方法。
+
+
+61.Qt编译错误 moc文件手动添加进来（没生成的重新移除再添加ui）
+virtual struct QMetaObject const * __thiscall CSet::metaObject(void)const " (?metaObject@CSet@@UBEPB
+
+
+62.
+获取sql语句影响的记录条数
+sql%rowcount
+
+63.
+redis
+
+64.虚函数的实现依赖于 静态虚表
+继承关系下，子类初始化的时候，先调用父类的构造函数，再调用子类的构造函数
+当使用父类的指针指向子类的对象的时候，如果用该指针去调用函数，函数不是虚函数，那么将被当作父类的对象去调用父类的函数
+如果是虚函数的话，则会在虚函数表中找到的函数地址就是子类的函数
+（注：虚表指针，父类先构造，续表指针指向父类的虚表，子类构造的时候，虚表指针指向子类的虚表）
+
+65.静态绑定和动态绑定
+多态是在程序动态绑定的时候实现的
+
+
+66.除了常见的通过类继承和虚函数机制生效于运行期的动态多态（dynamic polymorphism）外，带变量的宏，模板，函数重载，运算符重载，
+拷贝构造等也允许将不同的特殊行为和单个泛化记号相关联，由于这种关联处理于编译期而非运行期，因此被称为静态多态（static polymorphism）。
+
+67.
+债券委托的时候冻结的金额是 按照全价来计算的，（则包括了要结算的利息），再加上费用
+指令下达里的冻结金额是按 净价来计算的 委托冻结金额是按照全价加上费用来计算的
+	
+	
+	
+68.网关无法修改
+
+C:\windows\system32>netsh winsock reset catalog
+
+成功地重置 Winsock 目录。
+你必须重新启动计算机才能完成重置。
+
+
+C:\windows\system32>netsh int ip reset reset.log
+正在重置 全局，完成!
+正在重置 接口，完成!
+正在重置 单播地址，完成!
+正在重置 邻居，完成!
+正在重置 路径，完成!
+正在重置 路由，完成!
+正在重置 ，失败。
+拒绝访问。
+
+正在重置 ，完成!
+重新启动计算机来完成此操作。
+
+
+
+69.
+const std::vector<int>::iterator iter = vc.begin(); //类似于 T* const
+*iter = 10;
+++iter;//error
+
+std::vector<int>::const_iterator iter = vc.begin();
+++iter;
+*iter = 10; //error  const_iterator 类似于const T* 
+
+
+70.
+没有depents使用以下命令（vs自带）查看依赖的关系 dumpbin /depents xxx.exe
+
+C:\Users\DogN1e\Desktop\新建文件夹>dumpbin /dependents 异常整合工具.exe
+Microsoft (R) COFF Binary File Dumper Version 6.00.8168
+Copyright (C) Microsoft Corp 1992-1998. All rights reserved.
+
+
+Dump of file 异常整合工具.exe
+
+File Type: EXECUTABLE IMAGE
+
+  Image has the following dependencies:
+
+    Qt5Core.dll
+    Qt5Gui.dll
+    Qt5Widgets.dll
+    Qt5Xml.dll
+    KERNEL32.dll
+    MSVCP120.dll
+    MSVCR120.dll
+
+  Summary
+
+        1000 .data
+       10000 .rdata
+        3000 .reloc
+        F000 .rsrc
+       11000 .text
+       
+71.构造先父后子，析构先子后父，析构为虚函数应对 A a = new B这种情况，如果父类的析构函数不是虚函数，那么delete a的时候只释放了基类，没有释放子类
+#include<iostream>
+using namespace std;
+class A{
+public:
+	A(){
+		cout<<"construction A"<<endl;
+	};
+	~A(){
+		cout<<"destruction A"<<endl;
+	}
+};
+
+class B:public A{
+public:
+	B(int b){
+		cout<<"construction B"<<endl;
+	}
+	~B(){
+		cout<<"destruction B"<<endl;
+	}
+};
+
+void main(){
+	B b(1);
+}
+
+
+
+72.
+
+（1）实现一个简单的 TCP 传输层的协议机制自己去设计协议，不用照搬 RFC 的标准，其实就是数据结构的用场。
+需要考虑到数据包丢失（Loss）、损坏（Corruption）、乱序（Disorder）这样的情况。
+
+（2）实现操作系统的虚拟内存机制（基于Nachos系统）如何去设计页表。如何使用置换算法。以及应用程序请求页的时候，发生缺页，
+从而导致的中断如何处理。
+
+（3）实现一个简单的编译器（MiniJava）词法：字符串匹配，表达式求值 等算法；语法：生成抽象语法树；
+语义：采用适当的设计模式（Visitor）来生成语义表、字典、然后转化为目标代码（可以是汇编、或者是类似的 Three-Address Code）
+
+
+73.
+system("pause");
+or
+getch();
+
+
+74.32位的结构体内除对齐，（64位填充为8）
+
+typedef struct qnode
+{
+    char data;
+    int next;
+}QNode;
+
+大小也为8，再比如：
+
+typedef struct qnode
+{
+    char data1;
+    char data2;
+    int next;
+}QNode;
+
+的大小也为8，但是你要把data2和next位置换一下，大小就变成12了，如下：
+
+typedef struct qnode
+{
+    char data1;
+    int next;
+    char data2;
+}QNode;
+
+大小为12。
+
+75.
+数组名不是指针
+http://blog.csdn.NET/ljob2006/article/details/4872167
+1.从sizeof判断 32为编译器下 sizeof指针就是4 sizeof数组名 是实际分配的大小
+2.int a[2] ={1,2};
+  int *p = a;//其实只是将数组的首地址存储在了p内
+3.指针是一个变量，有大小，而数组名是不可能占据内存大小的
+4.数组名作为函数形参时，其全面沦落为一个普通指针(无论函数内声明的数组还是指针，都是转换成了指针，可以进行自加等运算)
+5.数组退化成指针以后，数组的大小也丢失了，所以经常看到传递的时候会带上指针的大小
+
+76.
+数组名不能做自加运算，不是左值，但是可以通过一先对其取地址再加一赋值给指针再减一偏移来得到数组末尾的元素
+  int c[4] = {1,2,3,4};
+  int *d = c;
+  int *e = (int*)(&c+1);
+  //c++; error C2105: '++' needs l-value
+  cout << *++d << endl;   //2
+  cout << *--e << endl;   //4
+  
+  
+77.
+void main(){
+  int c[4] = {1,2,3,4};
+  int *d = c;
+  int *e = (int*)(&c+1);
+  //c++; error C2105: '++' needs l-value
+  cout << *++d << endl;   //2
+  cout << *--e << endl;   //4
+
+  int g[2][3] = {1,2,3,4,5,6};
+  cout << "add.g = " << g << endl;
+  cout << "add.g[0] = " << g[0] << endl;
+  int **p = (int **)g;
+  cout << "add.p = " << p << endl;
+
+
+  for (int i = 0 ; i < 2; i++){
+    for ( int j = 0 ; j < 3 ; j++){
+	  cout << *(p+i*2+j) << endl;      // 我的理解是编译器认为所指像的类型是地址所以打印出来的是8位16进制
+	  cout << *((int*)p+i*2+j) << endl;// 告诉了所指类型为int
+	}
+  }
+  //指针到底是指针还是指针的指针在这里已经无关紧要，反正数组的内存分配方式是按照顺序分配的，所以进行加运算的时候，指针的偏移量都是按照所指类型为4计算的
+
+/*
+输出:
+2
+4
+add.g = 0018FF18
+add.g[0] = 0018FF18
+add.p = 0018FF18
+00000001
+1
+00000002
+2
+00000003
+3
+00000003
+3
+00000004
+4
+00000005
+5
+Press any key to continue
+*/
+
+78.关于二维数组赋值给指针的指针的例子，在一个评论中看到这个，觉得很有见解
+我感觉原文作者犯了一个错误：
+若实参是二维数组：
+int a[3][3];
+形参可声明为：
+int a[3][3]; 或 int a[][3]; 或 int (*a)[3];
+若实参是指针数组：
+int *a[3];
+则形参可声明为
+int *a[]; 或 int **a;
+但是作者在a是一个二维数组的情况下，却赋给形参是一个二维指针。
+这本质上就是把指向数组的指针和指针数组混淆了。而这显然不是同一类型。
+所以作者才有了一个强制类型转换（int **），才避免了编译器发出警告或错误。我只想说这样是一个不太好，
+甚至是错误的声明。这也是我个人的一些见解
+
+总体而言，现阶段我的理解是其实二维数组转换成数组指针更加妥当，若要转换成指针的指针需要先要强制转换，然后在取值的时候再对
+二维数组转换成一维数组再取值，(其实跟最初在函数传递的时候就转换成一维数组没有区别)
+
+//下文来看，二维数组就是不要转换为指针的指针为好，int的时候 **pt读取会崩溃，char的时候*pt就会崩溃，而且读取*pt的时候会被当成地址
+//来输出，所以别处其实都是传递进来的 指针的指针，实际取值的时候，是转换成为指针来取的
+
+  int arr2[3][3] = {{1,2,3},{4,5,6},{7,8,9}};
+  int **pt2 = (int**)arr2;
+  cout << "value of arr2    :" << arr2 << endl;
+  cout << "value of arr2[0]    :" << arr2[0] << endl;
+  cout << "value of arr2[0][0]    :" << &arr2[0][0] << endl;
+  cout << "value of pt2     :" << pt2 << endl;
+  cout << "value of *pt2    :" << *pt2 << endl;
+  cout << "value of *(pt2+1)  :" << *(pt2+1) << endl;
+  cout << "value of *++pt2  :" << *++pt2 << endl;
+  //cout << "add of **++pt2 :" << **++pt2 << endl; error
+
+
+    char arr[3][3] = {
+  "12","xc","xx"
+  };
+  char **pt = (char**)arr;
+  cout << "value of arr    :" << arr << endl;
+  cout << "value of pt     :" << pt << endl;
+  //cout << "value of *pt    :" << *pt << endl; error
+  //cout << "value of *++pt  :" << *++pt << endl; error
+  //cout << "value of **++pt :" << **++pt << endl; error
+
+/*
+value of arr2    :0018FEE8
+value of arr2[0]    :0018FEE8
+value of arr2[0][0]    :0018FEE8
+value of pt2     :0018FEE8
+value of *pt2    :00000001  注意：此处打印的00000001之前被我误解为是正确的值，经常调试发现，原来是真正的地址0x00000001
+value of *(pt2+1)  :00000002  //??那为什么偏移量变成了1位
+value of *++pt2  :00000002
+value of arr    :0018FED8
+value of pt     :0018FED8
+Press any key to continue
+*/
+
+79.
+编译器数组实参 转换为 形参
+“数组名被改写成一个指针参数”规则并不是递归定义的。数组的数组会被改写成“数组的指针”，而不是“指针的指针”：
+
+实参                                                      所匹配的形参
+
+数组的数组          char c[8][10];                 char (*)[10];          数组指针
+
+指针数组             char *c[10];                   char **c;             指针的指针
+
+数组指针(行指针)  char (*c)[10];                 char (*c)[10];           不改变
+
+指针的指针           char **c;                       char **c;            不改变
+
+重点：
+把握倒是是数组还是指针，比如指针数组，它是指针的数组，数组转换成指针，即 指针的指针
+                            数组指针，他已经指针了，传递过去仍然是指针，即 数组指针。
+                            
+                            
+80。另一种说法，但是我还是坚持数组名只是一个名称，不是变量，
+#include <stdio.h>  
+  
+int a[2] = {1,2};  
+int main(){  
+        printf("a = %p\n", a); // I  
+        printf("&a = %p\n", &a); // II  
+        printf("a + 1 = %p\n", a + 1);// III  
+        printf("&a + 1 = %p\n", &a + 1);// IV  
+  
+        return 0;  
+}  
+本机（linux）结果输出：
+a = 0x804a014
+&a = 0x804a014
+a + 1 = 0x804a018
+&a + 1 = 0x804a01c
+没错，上面I 和 II打印出来的地址是一样的，IV 要比 III 大4个字节的地址空间。下面是我对这一现象的解释，
+如有不妥的地方请各位大虾一定给于指出:
+首先引用《C和指针》p141中的理论： 在C中， 在几乎所有使用数组的表达式中，数组名的值是个指针常量，也就是数组第一个元素的地址。
+ 它的类型取决于数组元素的类型： 如果它们是int类型，那么数组名的类型就是“指向int的常量指针“。
+  看到这里我想应该就知道为什么 会有I 和 III式的结果了。
+对于II 和 IV 则是特殊情况，在《C和指针》p142中说到，在以下两中场合下，数组名并不是用指针常量来表示
+，就是当数组名作为sizeof操作符和单目操作符&的操作数时。 sizeof返回整个数组的长度，而不是指向数组的指针的长度。 
+取一个数组名的地址所产生的是一个指向数组的指针，而不是一个指向某个指针常量的指针。 所以&a后返回的指针便是指向数组的指针，
+跟a（一个指向a[0]的指针）在指针的类型上是有区别的。
+
+对于二维数组来说：
+int a[3][3] = {1,2,3,4,5,6};
+输出的地址值：a = &a = a[0] = &a[0][0]；
+
+
+指针数组总结：
+经过debug查看地址，发现二维数组转换为指针的指针以后，存储的地址其实正确的，就是数组所在的地址，
+**P 即p的值就是数组的地址，但是*p在int下是该地址下的值，即对应的数组里的值，只是不强行转换的话，打印出来是16进制的，被当成了地址
+                                   char下的*p的值是随机的，而且不可访问。
+
+
+81.一个巧妙地利用rownum来实现找出最接近目标值的前几个中最大的的方法
+select max(phydate) from (select phydate from trdcalendar where phydate > 20170625 and instr(markets,'A') > 0 order by phydate)
+where rownum <= 3;
+
+输出：20170628
+
+去掉max则前3全都输出来
+select phydate from (select phydate from trdcalendar where phydate > 20170625 and instr(markets,'A') > 0 order by phydate)
+where rownum <= 3;
+
+order by phydate desc则输出最大的前三位 类似于 sql_server中的top用法
+select phydate from (select phydate from trdcalendar where phydate > 20170625 and instr(markets,'A') > 0 order by phydate desc)
+where rownum <= 3;
+
+82.
+#ifdef _NAME_H_ #pragma once
+只能保证在同一个源文件里面展开的时候只被编译一次，但是在多个文件同时引用该头文件的时候，如果该头文件里面存在函数或全局变量
+的定义，一样会发生重定义的错误。
+
+对于变量和函数的声明和定义
+全局区域：
+int a;           \\定义
+extern int a;    \\声明
+extern int a = 1;\\定义
+函数的定义必须要有函数体，所以加不加extern无所谓，编译器可以区分开是定义还是声明
+void fun();      \\声明
+extern fun();    \\声明
+
+83.extern和extern "C"
+http://blog.csdn.net/yuyantai1234/article/details/7245412讲解头文件以及extern关键字在变量以及函数的定义和声明处，收益匪浅
+include的作用就是铺开内容，所以说不要在头文件中定义，只做声明就好了，每次include该文件的时候，都会重新定义一次在头文件中定义的
+全局变量，虽然可以通过使用#ifdef _NAME_H_ #pragma once等保证不被编译两次发生重定义等错误，但是当如果是在不同的文件中引用该头文件
+也会链接报错，所以要避免在头文件中定义变量。
+
+c++真细
+
+83.实例
+c中调用c++的函数
+注：
+c中无法使用extern "C",.h和.c都不行
+cpp中.h和.cpp都可以
+另外函数定义的源文件中不一定需要包含声明的头文件，编译器会把对应的obj链接上去。
+
+c++的头文件 so.h
+#ifndef _H_SO_
+#define _H_SO_
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+int fun(int ,int );
+#ifdef __cplusplus
+};
+#endif
+
+C++的源文件so.cpp
+#include "so.h"
+int fun(int a,int b){
+	return a+b;
+}
+
+C的头文件:
+#include "so.h"
+注:这里可以直接include头文件，是因为已经用__cplusplus宏处理过，当展开在c里面的时候，是不会带上extern "C"的，
+展开后，此处只是一句int fun(int,int);也就是一句声明，跟不include头文件，只声明函数的效果是一样的
+
+C的源文件:
+#include<stdio.h>
+#include "user.h"
+void main(){
+  printf("%d",fun(1,2));
+ }
+ 
+ 
+84.__cplusplus
+看了一下这宏，被#include到.c的时候自然就是undefined
+              被#include到.cpp的时候就是def
+.h文件是不被编译的，它的作用就是在源文件中展开，只有源文件才会生成obj
+
+在上面的例子中，如果把so.cpp中的#include "so.h"去掉，就会产生无法解析外部符号_fun,该符号在函数。。被引用
+原因是因为源文件中没有so.h的声明的话，那so.cpp将会既是声明又是引用，而不会按照c的方式编译链接，函数名不是_fun，所以才会报错，
+同理，去掉#include "so.h"，在函数定义前添加 extern "C"也可以。
+
+
+85.汉字转拼音
+存储一个汉字需要两个字节
+char a[3] = "啊";
+
+char a[20] = "h啊"
+a[1] = -95 其实是因为被转换成int FFFFFFFFFFFFFFA1 真实的值就是A1 unsined char A1 161
+汉字的编码是按照拼音的一定顺序来的，所以可以通过建立一个参照的关系来实现获取汉字拼音的转换。
+无论是以实际的编码来映射，还是通过转换过来的数字都可以
+
+
+86.vector的erase操作
+将会把后面所有的元素往前移位一位，迭代器的位置没有变，只是指向位置里面存储的值发生成了变化
+之前有看过同事的一种替代erase的方法，因为每次erase，就需要后面的所有元素往前移位，这将很大程度上损失性能，
+所以可以通过把最后一位和当前需要erase的元素进行替换，然后，resize大小来节省性能
+vecData[i] = vecData[vecData.size() - 1];
+     vecData.resize(vecData.size() - 1);
+     不足的是排序变化了，对于排序规律的可以后重新排序，对于不规律的，但是不能打乱顺序的，可以通过另外一个容器按照顺序下，记录
+     各个元素的执政
+     
+87. win 8.1 创建无线临时网络
+
+Microsoft Windows [版本 6.3.9600]
+(c) 2013 Microsoft Corporation。保留所有权利。
+
+C:\windows\system32>netsh wlan set hostednetwork mode = allow ssid = temp key =
+123123123
+承载网络模式已设置为允许。
+已成功更改承载网络的 SSID。
+已成功更改托管网络的用户密钥密码。
+
+
+C:\windows\system32>netsh wlan start hostednwtwork
+找不到下列命令: wlan start hostednwtwork。
+
+C:\windows\system32>netsh wlan start hostednetwork
+已启动承载网络。
+
+
+88.fc 1.txt 2.txt可以看出两者之间不同
+
+
+89.判断一个字符串全是数字
+
+bool isNum(string str){
+	for (int i = 0; i < str.size(); i++){
+		int num = (int)str[i];
+		if (num >= 48 && num <= 57){
+			continue;
+		}
+		else
+			return false;
+	}
+	return true;
+}
+
+
+90.继承
+#include<iostream>
+using namespace std;
+class A{
+public:
+	A(){//如果没有这个函数将无法转换 A *a = new B(); 应该是会先调用这个构造函数的
+
+	}
+	A(const char* szName){
+		strcpy(m_szName,szName);
+	}
+	void printA(){
+		cout<<m_szName<<endl;
+	}
+	
+	char m_szName[100];
+};
+
+class B:public A{
+public:
+	B(const char* szName){
+		strcpy(m_szName,szName);
+	}
+	void printA(){
+		cout<<"b--->"<<m_szName<<endl;
+	}
+	void printB(){//对于A *a来说printB是不可见的
+		cout<<"b---"<<endl;
+	}
+};
+
+void main(){
+	A *a = new B("hello");
+	a->printA(); //输出是 hello 类B中的printA不是虚函数，是不可见的
+}
+
+
+91.js和sql中的单引号
+js中单引号和双引号意义是一样的 ''''在js是字符串'',在sql中是'
+sql中的字符串中两个''即表示字符串中的单引号
+''||1||''---> sql: 1
+'''1'''---->sql: '1'
+''''||1||''''--> ('''')|| 1 || ('''') --> '1'
+'''||1||''' -->error
+
+92.exception
+
+
+
+93.sql性能的优化
+*--->所有字段
+解析from是从右到左，关联查询选交叉作为基础表（最右表），选记录条数较少的表作为基础表
+解析where是从下到上
+count(索引) > count(*) > count(字段)
+
+
+94.计数排序
+
+void countSort(char *str,int len,char *newStr,int len2){//暂时只支持字母，如果要支持大小写和数字的话就需要更多的空间
+	if (len2 < len)
+		cout << "error param" << endl;
+	int letter[26];
+	int index;
+	memset(letter, 0, sizeof(letter));
+	for (int i = 0; i < len; i++){
+		index = *(str + i) - 'a';
+		letter[index]++;
+	}
+
+	for (int i = 1; i < 26; i++){
+		letter[i] += letter[i - 1];	
+	}
+
+	for (int i = 0; i < len; i++){
+		index = *(str + i) - 'a';
+		if (letter[index]){
+			*(newStr + letter[index] - 1) = *(str+i);
+			letter[index]--;
+		}
+	}
+
+}
+
+95.delete
+	int *b = new int(4);                 //栈中声明一个指向堆中内存的指针，堆中内存存储的值就是4
+	cout << "b" << b << endl;            
+	cout << "&b" << &b << endl;
+	cout << "*b" << *b << endl;
+	delete b;                            //delete
+	cout << "b" << b << endl;            //指向一个随机的值，也就是说指针b现在是一个野指针
+	cout << "&b" << &b << endl;          //b的地址不变，仍然是栈中的地址
+	
+	总结：在delete完指针以后，最好将指针也赋值为 NULL,在delete之前，先将指针判断为是否为空指针
+	
+	//需要释放的只是new出来的堆中的内存
+	
+	//delete 干了什么，调试以下代码
+	int *a = new int(5);
+	int *b = a;
+	delete a;
+	//发现 delete a以后 a成了野指针，b仍指向原内存，但是内存中的值已经变成了一个随机数
+	
+	在一下代码中，尽管已经将this->pNum = NULL,但是改变的是自己对象里面的，由A(A &a)产生的新的对象中pNum
+#include<iostream>
+using namespace std;
+class A{
+public:
+	A(int num){
+		this->num = num;
+		this->pNum = &this->num;
+	};
+	A(A &a){
+		this->num = a.num;
+		this->pNum = a.pNum;
+	};
+	~A(){
+		if (this->pNum != NULL){
+			cout << "delete " << endl;
+			delete this->pNum;
+			this->pNum = NULL;
+		}
+	}
+private:
+	int num;
+	int* pNum;
+};
+void fun(){
+	A a(3);
+	A b(a);
+}
+void main(){
+	fun();
+}
+//原本上面这一段代码是要测试浅拷贝引起的内存二次释放问题，但是引发出来的还是 不是 new出来的指针不要去delete,本身不是new出来的，在脱离函数的生命周期的时候，
+系统会自动处理，此时去delete，反而导致了二次释放
+
+
+浅拷贝示例：
+#include<iostream>
+using namespace std;
+class A{
+public:
+	A(int num){
+		this->num = num;
+		this->pNum = new int(this->num);
+	};
+	A(A &a){
+		this->num = a.num;
+		this->pNum = a.pNum;
+	};
+	~A(){
+		if (this->pNum != NULL){
+			cout << "delete " << endl;
+			delete this->pNum;
+			this->pNum = NULL;
+		}
+	}
+private:
+	int num;
+	int* pNum;
+};
+void fun(){
+	A a(3);
+	A b(a); 
+}  //在析构b的时候，delete b.pNum存在二次释放的问题
+void main(){
+	fun();
+}
+
+故代码需要修改成
+	A(A &a){
+		this->num = a.num;
+		this->pNum = new int; //重新分配内存，深拷贝
+		*this->pNum = *a.pNum;
+	};
+	
+	同理，除了拷贝构造函数之外，在调用默认的 = 操作符函数时，也会发生因为指针的浅拷贝而引发的二次释放问题
+	故需要重载 = 操作符函数
+	A& operator =(const A& objA){
+	  this->num = objA.num;
+	  this->pNum = new int;
+	  *this->pNum = *objA.pNum;
+	}
+	or
+	A& operator =(const A& objA){
+	  this->num = objA.num;
+	  this->pNum = new int(*objA.pNum);
+	}
+	
+	
+96.getline函数找不到，需要把头文件改成<string>
+string.h
+string.h是C语言里面关于字符数组的函数定义的头文件，常用函数有strlen、strcmp、strcpy等等，更详细的信息可以自己查看（面向过程）
+cstring
+CString常用于MFC编程中，是属于MFC的类，如从对话框中利用GetWindowText得到的字符串就是CString类型，CString定义在afx.h头文件中。CString为Visual C++中最常用的字符串类，继承自CSimpleStringT类，主要应用在MFC和ATL编程中，所以使用CString时要包含afx.h文件。
+string
+string是C++标准库(STL)中的类型，它是定义的一个类，定义在string头文件中。里面包含了对字符串的各种常用操作，它较char*的优势是内容可以动态拓展，以及对字符串操作的方便快捷，用+号进行字符串的连接是最常用的操作。
+
+97.打印时间戳 毫秒级
+windows.h
+	double start = GetTickCount();
+	ReadFileS(path, 13);
+	double end = GetTickCount();
+	cost = difftime(end, start);、
+	
+98.R6010 abort
+导致出现这样的原因有：
+
+1.非法指针访问和内存泄漏
+2.设置的指针范围跟你运行的不对
+3.指针访问内存越界出现问题。
+4.因为不支持中文。
+5.内存不够分配
+6.多线程访问资源出的问题。
+7.检查exe和dll是否混用的不同版本的crt	
+
+最终发现原因，因为在创建线程函数以后后面没有什么内容，所以进程直接结束了，所以导致了传递进线程函数的对象已经被释放，所以发生了
+R6010,可以通过join sleep 等方法让进程不结束。
+
+99.多线程 ！！！！！！！！！
+c11中的thread有个join和 detach，需要进一步探究
+
+
+100.
+strcasecmp函数是二进制且对大小写不敏感。此函数只在Linux中提供，相当于windows平台的 stricmp。
+
+
+101.
+listen第二个参数设置最多accept的连接数
+
+102.recv flag标志 ！！！！！！还未本地测试
+MSG_PEEK标志会将套接字接收队列中的可读的数据拷贝到缓冲区，但不会使套接子接收队列中的数据减少，常见的是：例如调用recv或read后，
+导致套接字接收队列中的数据被读取后而减少，而指定了MSG_PEEK标志，可通过返回值获得可读数据长度，并且不会减少套接字接收缓冲区中的
+数据，所以可以供程序的其他部分继续读取。
+
+103.
+一个真正的C++程序员，可以在Mac上用xcode 混合写C++和OC，用Android NDK写库通过JNI给Java用，
+在Windows上用Mingw交叉编译dll用VC++调用，在Linux上用C++写服务端，最后用Qt写GUI客户端通吃 Windows Linux Mac平台。
+
+104.
+打开的游标过多，没Close CkjseStream,尤其是在循环中
+
+105.
+虚函数在基类中不实现的话就一定要为纯虚函数，不然链接的时候，报错
+
+class A
+{
+public:
+    virtual void Display() const;
+    virtual void Print() const;
+};
+ 
+class B: public A
+{
+public:
+    virtual void Display() const
+    {
+        cout << "\n\tThis is Display()." << endl;
+    }
+ 
+    virtual void Print() const
+    {
+        cout << "\n\tThis is Print()." << endl;
+    }
+};
+ 
+int main()
+{
+    B b;
+    b.Display();
+    b.Print();
+     
+    return 0;
+}
+
+--------------------->
+class A
+{
+public:
+    virtual void Display() const{};
+    virtual void Print() const{};
+};
+ 
+ 
+106.
+short的范围，按照2个字节来计算
+无符号：0-2^16-1
+有符号: -2^15 - 2^15-1
+
+
+107.
+我从08年上大学开始一直到14年初五年半的年时间每周向他提供新闻政策以及资本市场八卦汇总周报，整理汇总各种研报以及投资者活动关系记录表摘要信息，
+长期在投资者互动平台上不厌其烦的向一堆企业的董秘提问，我还帮他深度的人肉分析过超过700多家A股上市企业，勾搭企业法务财务采购人员。
+
+人肉过不知道多少家企业报表更新后新进入的十大流通股股东里的个人以及企业。
+
+108.
+c++提供的js借口中，在不同的manage中创建的对象实际实际上指向的是同一个对象。
+	this.m_objClientCacheTable = new CKjseClientCacheTable();
+	调试的时候发现，多次调用不同函数的时候，上次调用的数据还存在
+	
+109.
+女孩让我帮她寄快递 给了我一个空纸箱让我打包 我好奇的问她:“这是寄给谁的” 她说:“我喜欢很久的一个男生” 我懵了一下:“可是里面没有东西啊” 
+她说:有些东西只有我自己能看见 我一听更懵逼了 神秘的问她到底是什么 她说:“一箱情愿”
+
+
+110.
+ORA-01745: 无效的主机/绑定变量名
+查错：没有发现语法问题，应该是设置的绑定变量名为oracle关键字，比如 date
+
+111.
+逻辑右移和算术右移
+逻辑右移不考虑符号位，左边补0
+算术右移考虑符号位，左边补符号位
+gcc下左移如果超过了原本数据类型的最大长度，则会对最大长度取余
+在vs下实验的是会在后面补0
+char b = 7;
+printf("%.2x\n",(b<<17)); // e0000
+printf("%s=c\n",(b<<17));   // 输出为 a,这是编译器的问题，单独输出'\0'成了a
+
+	cout << "---------------->" << '\0' << "\0" <<endl; \\a
+	printf("%c",0);                                     \\a 
+	printf("%c",'\0');                                  \\a
+	
+112.
+正数的源码，反码和补码都是一样的
+负数的反码为原码除符号位以为求反，补码为反码加一
+原本的考虑来说，计算机只用反码就可以完成加减法的运算，除了 -0的情况
+例如：
+1 - 3
+1 + (-3)
+源码： 0000 0001 + 1000 0011
+源码的和为 1000 0100为 -4显然不对
+反码： 0000 0001 + 1111 1100
+反码的和为 1111 1101 转换为原码 ： 1000 0010 = -2正确
+考虑到 1 - 1的时候
+原码 0000 0001 + 1000 0001
+反码 0000 0001 + 1111 1110 = 1111 1111 = 1000 0000(原) = -0
+正是考虑到 -0的情况，而且可以把 -0 处理成可表示范围内最大的负数，所以有了补码的诞生
+补码 0000 0001 + 1111 1111 = 0000 0000 = 0
+
+1000 0001 - 0111 1111
+1000 0001 + 1111 1111
+1111 1110 + 1000 0000
+1111 1111 + 1000 0001
+1000 0000 表示 -2^7
+以上同时，win32下int的范围也是这么一个道理. [-2^31,2^31-1]
+
+printf("%.2x",st[i]);
+
+113.
+绘制图像使用了gdiplus.h头文件，报错，很多宏未定义
+解决方法： 试试在include gdi+头文件前先include这个afxdtctl.h
+然后报错
+
+114.
+win下 matplotlib支持中文
+#font.family         : sans-serif
+#font.style          : normal
+#font.variant        : normal
+#font.weight         : medium
+#font.stretch        : normal
+# note that font.size controls default text sizes.  To configure
+# special text sizes tick labels, axes, labels, title, etc, see the rc
+# settings for axes and ticks. Special text sizes can be defined
+# relative to font.size, using the following values: xx-small, x-small,
+# small, medium, large, x-large, xx-large, larger, or smaller
+#font.size           : 10.0
+#font.serif          : DejaVu Serif, Bitstream Vera Serif, New Century Schoolbook, Century Schoolbook L, Utopia, ITC Bookman, Bookman, Nimbus Roman No9 L, Times New Roman, Times, Palatino, Charter, serif
+#font.sans-serif     : DejaVu Sans, Bitstream Vera Sans, Lucida Grande, Verdana, Geneva, Lucid, Arial, Helvetica, Avant Garde, sans-serif
+#font.cursive        : Apple Chancery, Textile, Zapf Chancery, Sand, Script MT, Felipa, cursive
+#font.fantasy        : Comic Sans MS, Chicago, Charcoal, Impact, Western, Humor Sans, xkcd, fantasy
+#font.monospace      : DejaVu Sans Mono, Bitstream Vera Sans Mono, Andale Mono, Nimbus Mono L, Courier New, Courier, Fixed, Terminal, monospace
+--->modify
+font.family         : sans-serif
+font.serif          : Microsoft YaHei, DejaVu Serif, Bitstream Vera Serif, New Century Schoolbook, Century Schoolbook L, Utopia, ITC Bookman, Bookman, Nimbus Roman No9 L, Times New Roman, Times, Palatino, Charter, serif
+-->code
+plt.text(0.7,0.3,u'测试')
+
+115.
+std::string的size和length的实现是没有区别的，
+size是作为容器的一种特性，都是不带\0
+
+116.c_str和data .c_str返回的是带有terminal character \0的，data没有
+测试结论是 没有发现什么区别，总的来说 安全的用法就是c_str(),strcpy_s并且在复制的时候用str.size()+1
+#include<iostream>
+#include<windows.h>
+using namespace std;
+void main()
+{
+	string str = "hello";
+	cout << str.size() <<str.length() << str.c_str() << endl;
+	const char *a = str.c_str();
+	char *b = new char;
+	char *d = new char[100];
+	strcpy_s(d,str.size()+1,str.c_str());
+	strcpy(b,str.c_str());//strcpy_s(b,str.size()+1,str.c_str())
+	cout << a << endl;
+	cout << b << endl;
+	str = "world";
+	cout << a << endl;
+	cout << b << endl;
+
+	char *c = new char[7];
+	char *e = new char[29];
+	strcpy(e,str.data());
+	strcpy_s(c,str.size()+1,str.data());
+	int l1 = strlen(a);
+	int l2 = strlen(b);
+	int l3 = strlen(c);
+	int l4 = strlen(d);
+	int l5 = strlen(e);
+	int s1 = sizeof(a);
+	int s2 = sizeof(b);
+	int s3 = sizeof(c);
+	int s4 = sizeof(d);
+	int s5 = sizeof(e);
+	char cc = a[6];
+	cc = a[5];
+	cc = b[5];
+	cc = c[5];
+	cc = d[5];
+	cc = e[5];
+	cout<< c << endl;
+	
+	system("pause");
+	
+}
+
+117.
+exclusive or 异或 XOR
+
+
+118.
+查询一张表内某一属性相同的所有记录
+select * from tab where col in
+  (select col from tab group by col
+   having count(col) > 1) 
+   
+119.线程临界区
+InitializeCriticalSection(&cs);//初始化临界区
+EnterCriticalSection(&cs);//进入临界区
+//操作数据
+MyMoney*=10;//所有访问MyMoney变量的程序都需要这样写Enter.. Leave...
+LeaveCriticalSection(&cs);//离开临界区
+DeleteCriticalSection(&cs);//删除临界区
+
+120.
+两个队列实现栈：
+  选取一个存储数据为 a.一个备用b
+  if (push)
+  {
+     push into a
+  }
+  else if (pop)
+  {
+    i = 1;
+    while( i < a.size)
+      push a.pop into b
+    pop.a;
+  }
+两个栈实现队列
+  if (push)
+  {
+     push into a
+  }
+  else if (pop)
+  {
+    i = 0;
+    while( i < a.size)
+      push a.pop into b
+    pop.b;
+  }
+环形结构同时实现队列和栈
+
+
+121.原子操作
+#define ASSIGN_PTR(dest,val)  InterlockedExchangePointer((volatile PVOID*)&dest,val)
+#define ASSIGN_LONG(dest,val)  InterlockedExchange(&dest,val)
+#define INCREMENT_LONG(dest)  InterlockedIncrement(&dest)
+#define DECREMENT_LONG(dest)  InterlockedDecrement(&dest)
+
+122.
+<<= 即左移赋值
+
+123.
+process重在“（自然的）过程”，procedure重在”（正确的）步骤“。
+progress进步的感觉 make progress
+
+124.
+WaitForSingleObject(HANDLE hHandle,DWORD dwMillisends)
+hHandle[in]对象句柄。可以指定一系列的对象，
+如Event、Job、Memory resource notification、Mutex、Process、Semaphore、Thread、Waitable timer等。
+dwMilliseconds[in]定时时间间隔，单位为milliseconds（毫秒）.
+如果指定一个非零值，函数处于等待状态直到hHandle标记的对象被触发，或者时间到了。
+如果dwMilliseconds为0，对象没有被触发信号，函数不会进入一个等待状态，它总是立即返回。
+如果dwMilliseconds为INFINITE，对象被触发信号后，函数才会返回。
+
+125.
+python和js在函数值传递上类似，都是可以改变可变对象的值（数组，对象，dict，list之类的），不能改变字符串，数字，元组的值
+python的元组 ('a','b','c')        值不可变，用来存储一组供安全访问的值
+python的列表 ['a','b','c']        有序存储，可以通过下标访问
+python的字典 { 'a':1,'b':2,'c':3} 无序存储
+python的set  不可变对象
+
+126.
+time 获取从1970年1月1日0时0分0秒到此时的秒数。
+win时间
+time_t aTime;
+time(&aTime);
+等效于 time_t aTime = time(NULL);
+
+localtime将时间数值转换为本地时间
+time_t aTime = time(NULL);
+struct tm *tm_now = localtime(&aTime);
+获取时间:tm_now->tm_year+1900, tm_now->tm_mon+1, tm_now->tm_mday, tm_now->tm_hour, tm_now->tm_min, tm_now->tm_sec
+
+char timeString[40];
+time_t aTime = time(NULL);//等效于time(&aTime)
+strftime(timeString, sizeof(timeString), "%Y-%m-%d %H;%M:%S", localtime(&aTime));
+
+127.
+内核对象创建的时候，创建失败，大部分都是返回 NULL /0 createFile返回的是-1(INVALID_HANDLE_VALUE)
+内核对象无论怎么创建，都必须要通过CloseHandle来结束
+
+128.
+因此，应用程序在运行时有可能泄漏内核对象，但是当进程终止运行时，系统将能确保所
+有内容均被正确地清除。另外，这个情况适用于所有对象、资源和内存块，也就是说，当进程
+终止运行时，系统将保证进程不会留下任何对象。
+
+129.全局变量和static变量是在main函数之前
+#include<iostream>
+#include<conio.h>
+#include<windows.h>
+using namespace std;
+static int b = 111;
+class A
+{
+public:
+    A()
+    {
+    cout<<"test"<<endl;
+    cout<<b<<endl;
+    }
+    ~A()
+    {
+        cout<<"destructor"<<endl;
+    }
+};
+
+A a;
+int main(){
+  cout<<"hello"<<endl;
+#ifdef _WIN32
+  system("pause");
+#else
+  getch();
+#endif //
+return 0;
+}
+
+output:-------------------------------->
+test
+111
+hello
+请按任意键继续. . .
+destructor
+
+Process returned 0 (0x0)   execution time : 2.118 s
+Press any key to continue.
+
+
+130.
+HMODUlE GetModuleHandle(PCTSTR pszModule)调用该函数可以返回可执行文件或者dll文件加载到进程的地址空间所用的句柄/基地址
+如果pszModule为NULL，则返回的是当前可执行文件的基地址
+事实上，在WINMAIN函数执行时就是这样操作的
+值得注意的两个点：
+1.只能查看当前进程地址空间里面的基地址，就是说如果一个dll被其它的进程加载了，在另一个没加载的进程里面getmodulehandle是无法查看的
+2.如果传递的是null，返回只是可执行文件的基地址，也就是说如果该GetModuleHandle是写在dll的代码中，返回的仍然是加载该dll的可执行文件的基地址
+
+131.
+打印程序路径和环境变量
+//_pgmptr char*
+//_environ char**
+cout<<_pgmptr<<"<<<<<"<<_environ[0]<<endl;
+
+__FILE__
+__LINE__
+
+132.
+std::string 不可以与null相比较，可以与”“比较，使用empty()函数，length() == 0
+char * a= NULL;
+string str(a);这样也是错的
+
+133. oracle将一列转换为一行
+--待转换的列表 begin
+
+with tt as
+ (select subitemname as val
+    from sys_dictvalue
+   where dictitem = 90000
+   order by subitem)
+--待转换的列表 end
+select LTRIM(text, ',') TEXT --去掉最左边的逗号
+  from (select LEVEL lvl, SYS_CONNECT_BY_PATH(val, ',') text, val --逐行遍历按CONNECT BY的条件连接
+          from (SELECT val, ROW_NUMBER() OVER(PARTITION BY 1 ORDER BY 1) x --生成一个树形结构，val为值，x为节点号
+                  FROM tt) a
+        CONNECT BY x - 1 = PRIOR x
+         order by lvl desc, x desc) --降序将最完整的串排在最前面
+ where rownum = 1;
+
+方法2：
+select wmsys.wm_concat(name) from  v$tablespace;
+
+134
+python的多线程是并发的，而不是并行的
+GIL全局解释锁，会产生互斥锁限制线程对共享资源的访问，因此只存在一个线程在cpu上执行，锁会在遇到I/O操作的时候释放，
+或者在操作次数达到一定数量的时候释放，切换到其它线程
+综上所述，CPU密集型（计算密集型）的程序不适合采用多线程，而I/O密集型的，例如爬虫，是适用多线程的，当在等待网络数据的时候，线程会切换到其它
+线程上去执行，在I/O上是并发的
+而CPU密集型，可以采用mutilProcessing来节约时间
+
+135
+python线程threading.Lock和RLock
+RLock允许在同一线程中被多次acquire。而Lock却不允许这种情况
+
+136.
+原子性需要确保一个操作，要么不执行，执行就一定要执行完，中间不存在线程切换之类的
+
+137.
+id threadFunc_1()
+{
+	int i = 0;
+	while (i < 1000000)
+	{
+		v_1++;
+		InterlockedIncrement(&v_2);
+		i++;
+	}
+}
+
+void threadFunc_2()
+{
+	int i = 0;
+	while (i < 1000000)
+	{
+		v_1++;
+		InterlockedIncrement(&v_2);
+		i++;
+	}
+}
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+	HANDLE m_hThread[2] = {0};
+	DWORD tid_1;
+	m_hThread[0] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)threadFunc_1, NULL, 0, &tid_1);
+	DWORD tid_2;
+	m_hThread[1] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)threadFunc_2, NULL, 0, &tid_2);
+
+	WaitForMultipleObjects(2, m_hThread, TRUE, INFINITE);
+	CloseHandle(m_hThread[0]);
+	CloseHandle(m_hThread[1]);
+
+	std::cout << "v_1: " << v_1 << ",v_2: " << v_2 << std::endl;
+
+	system("pause");
+	return 0;
+}
+
+输出:
+v_1: 1326231,v_2: 2000000
+请按任意键继续. . .
+
+原子操作的必要性，在并发的时候，如果操作的是同一内存的数据，以上文中的只加为例
+a++自加的汇编为
+mov eax,dword ptr[a]
+add eax,1
+mov dword ptrp[a],eax
+cpu先将内存中的值读取到寄存器，寄存器中的值加一，然后将寄存器的值写回a所在的内存地址
+如果存在两个线程同时对一个全局变量a进行自加，在多核cpu中，内存a的值会拷贝到不同的寄存器中，其中一个cpu根本不知道另一个cpu也在对a进行自加
+那么如果执行顺序如下
+mov eax,dword ptr[a]   (cpu1)
+mov eax,dword ptr[a]   (cpu2)
+add eax,1              (cpu1)
+add eax,1              (cpu2)
+mov dword ptrp[a],eax  (cpu1)
+mov dword ptrp[a],eax  (cpu2)
+那么其实cpu1的自加操作其实是无效的，被cpu2的操作给覆盖了，那么最终a的值还是1
+这里称为cpu1，cpu2其实是错误的，我的意思是指多核cpu的每一个有自己独立寄存器的核。
+
+i = 0,i++在两个线程里边分别执行100次，能得到的最大值和最小值分别是多少？（答案是200和2）
+这个问题，刚刚我想了半天，最大两百可以理解，最小为2怎么回事，我一度认为最小为100
+在一下情况是2
+cpu1： mov eaxdword ptr[i]
+cpu2:  mov eax,dword ptr[i]
+cpu2:  add eax,1
+cpu2:  mov dword ptr[1],eax
+.....
+cpu2循环99次
+cpu1:  add eax,1
+cpu1:  mov eax,dword ptrp[i]这时候内存中的值又变成了1
+cpu2:  mov eax,dword ptr[i]
+cpu1:  mov eax,dword ptr[i]
+cpu1:  add eax,1
+cpu1:  mov dword ptr[1],eax
+.....
+cpu1循环99次
+cpu2:  add eax,1
+cpu2:  mov eax,dword ptrp[i]这时候内存中的值成了2
+
+以上是多核cpu下的情况
+如果发生在单核cpu中，那么多线程是共享同一个寄存器的，也就是值得覆盖主要是发生在寄存器中，因为寄存器只有一份，能保存的值的期限不能跨两次从内存中读取
+，自加的三条指令组合出来能实现的极端最小情况就是每次第一个线程寄存器中的值加一之后，就发生切换，被第二个线程重新读取内存中的值
+
+
+
+138.
+原子操作
+共享数据（全局变量或堆变量）的自增（++）操作在多线程环境下会出现错误是因为这个操作（一条c语句）被编译为汇编代码后不止一条指令，因此在执行的时候可能执行了一半就被调度系统打断，去执行别的代码。
+我们把单指令的操作称为原子的（Atomic）,因为无论如何，单条指令的执行是不会被打断的。为了避免出错，很多体系结构都提供了一些常用操作的原子指令，例如i386就有一条inc指令可以直接增加一个内存单元值。
+在Windows里，有一套API专门进行一些原子操作（见下表），这些API称为InterlockedAPI。
+Windows API                       作用
+InterlockedExchange     原子地交换两个值
+InterlockedDecrement   原子地减少一个值
+InterlockedIncrement     原子地增加一个值
+InterlockedXor               原子地进行异或操作
+ 
+使用这些函数时，Windows将保证是原子操作的，因此可以不用担心出现问题。遗憾的是，尽管原子操作指令非常方便，但是它们仅仅适用于比较简单的特定场合。在复杂的场合下，比如我们要保证一个复杂的数据结构更改的原子性，原子操作就力不从心了。这里我们就需要更加通用的手段：锁。
+ 
+同步与锁
+为了避免多个线程同时读写同一个数据（全局变量或堆变量）而产生不可预料的后果，我们需要将各个线程对同一个数据的访问同步（Synchronization）。所谓同步，即是指在一个线程访问数据未结束的时候，其他线程不得对同一个数据进行访问。如此，对数据的访问被原子化了。 
+同步的最常见方法是使用锁（Lock）。即每个线程在访问数据或资源之前首先试图获取（Acquire）锁，并在访问结束后释放（Release）锁。在锁已经被占用的时候试图获取锁时，线程会等待，直到锁重新可用。
+
+二元信号量
+二元信号量（Binary Semaphore）是最简单的一种锁，它只用两种状态：占用与非占用。它适合只能被唯一一个线程访问的资源。当二元信号量处于非占用状态时，第一个试图获取该二元信号量的线程会获得该锁，并将二元信号量置为占用状态，此后其他的所有试图获取该二元信号量的线程将会等待，知道该锁被释放。
+ 
+信号量
+对于允许多个线程并发访问的资源，多元信号量简称为信号量（Semaphore），它是一个很好的选择。一个初始值为N的信号量允许N个线程并发访问。
+线程访问资源的时候首先获取信号量，进行如下操作：
+■将信号量的值减1。
+■如果信号量的值小于0，则进入等待状态，否则继续执行。
+ 
+访问资源之后，线程释放信号量，进行如下操作：
+■将信号量的值加1。
+■如果信号量的值小于1，唤醒一个等待中的线程。
+ 
+互斥量（Mutex）
+和二元信号量很类似，即资源仅同时允许一个线程访问，但和信号量不同的是，信号量在整个系统可以被任意线程获取并释放，也就是说，同一个信号量可以被系统中的一个线程获取之后由另一个线程释放。而互斥量则要求哪个线程获取了互斥量，哪个线程就要负责释放这个锁，其他线程越俎代庖去释放互斥量是无效的。
+ 
+临界区（Critical Section）
+是比互斥量更加严格的同步手段。在术语中，把临界区的锁的获取称为进入临界区，而把锁的释放称为离开临界区。临界区和互斥量与信号量的区别在于，互斥量和信号量在系统中任何进程里都是可见的，也就是说，一个进程创建了一个互斥量或信号量，另一个进程试图去获取该锁时合法的。然而，临界区的作用范围仅限于本进程中，其他的进程无法获取该锁（类似于静态全局变量对全局变量）。除此之外，临界区具有和互斥量相同的性质。
+ 
+读写锁（Read-Write Lock）
+致力于一种更加特定的场合的同步。对于一段数据，多个线程同时读取总是没问题的，但假设操作都不是原子型，只要有任何一个线程试图对这个数据进行修改，就必须使用同步手段来避免出错。如果我们使用上述信号量、互斥量或临界区中的任何一种来进行同步，尽管可以保证程序争取，但对于读取频繁，而仅仅偶尔写入的情况，会显得非常低效。读写锁可以避免这个问题。对于同一个锁，读写锁由两种获取方式，共享的（Shared）或独占的（Exclusive）。当锁处于自由的状态时，试图以任何一种方式获取锁都能成功，并将锁置于对应的状态。如果锁处于共享状态，其他线程以共享的方式获取锁仍然会成功，此时这个锁分配给了多个线程。然而，如果其他线程试图以独占的方式获取已经处于共享状态的锁，那么它必须等待锁被所有的线程释放。相应地，处于独占状态的锁将阻止任何其他线程获取该锁，不论它们试图以哪种方式获取。读写锁的行为可以总结为如下表：
+ 
+读写锁状态           以共享方式获取                以独占方式获取
+自由                      成功                                  成功
+共享                      成功                                  等待
+独占                      等待                                  等待
+ 
+条件变量（Condition Variable）
+作为一种同步手段，作用类似于一个栅栏。对于条件变量，线程可以有两种操作，首先线程可以等待条件变量，一个条件变量可以被多个线程等待。其次，线程可以唤醒条件变量，此时某个或所有等待此条件变量的线程都会被唤醒并继续支持。也就是说，使用条件变量可以让许多线程一起等待某个事件的发生，当事件发生时（条件变量被唤醒），所有的线程可以一起恢复执行。
+
+
+138.
+L[0:3]表示，从索引0开始取，直到索引3为止，但不包括索引3。即索引0，1，2，正好是3个元素。
+请利用切片，取出：
+1. 前10个数；
+2. 3的倍数；
+3. 不大于50的5的倍数。
+L = range(1, 101)
+print L[0:10]
+print L[2::3]
+print L[4:50:5]
+
+利用倒序切片对 1 - 100 的数列取出：
+* 最后10个数；
+* 最后10个5的倍数。
+L = range(1, 101)
+print L[-10:]
+print L[4::5][-10:]
+
+139.利用切片优化首字母转大写
+def firstCharUpper(s):
+    return s[0].upper()+s[1:]
+
+140.zip可以将两个list合并成一个list
+>>> zip([10, 20, 30], ['A', 'B', 'C'])
+[(10, 'A'), (20, 'B'), (30, 'C')]
+
+L = ['Adam', 'Lisa', 'Bart', 'Paul']
+for index, name in zip(range(1,len(L)+1),L):
+    print index, '-', name
+效果类似于 enumerate
+for index, name in enumerate(L):
+    print index, '-', name
+    
+141.
+又是一颗语法糖
+print [ i*(i+1) for i in range(1,101)[::2]]
+
+142.isinstance判断数据类型
+def toUppers(L):
+    return [i.upper() for i in L if isinstance(i,str)]
+
+print toUppers(['Hello', 'world', 101])
+
+142.获取可逆转函数
+print [ i*100+j*10+k for i in range(1,10) for j in range(0,10) for k in range(1,10) if i == k]
+
+143.
+hash算法和hash表算法是两个不同的概念
+hash算法是一中加密算法，md5和sha，
+它可以保证
+1.（不可逆）无法从哈希值得到原值
+2.（无冲突）无法已知a，而得到另外一个b使得 a和b的哈希值相同（注：王小云教授曾经成功制造出MD5的碰撞，即md5(a) = md5(b)。这样的碰撞只能随机生成，并不能根据一个已知的a求出b）
+
+哈希算法并不是一种特定的算法，只要能完成这种转换的算法都是哈希算法。但是评定一个算法是否是好的哈希算法，要根据算法的离散度和冲突概率来评定。
+
+
+144.
+oracle日期数字字符转换
+select to_number(to_char(to_date(busidate,'yyyyMMdd') - 30,'yyyymmdd')) from sysconfig
+
+145.
+oracle临时表
+1.事务级临时表
+Create Global Temporary Table
+( cols col1,
+...)
+on Commit Delete Rows;
+事务提交或者回滚数据消失，结构还在
+
+2.回话级临时表
+Create Global Temporary Table
+(cols col1,
+...)
+on Commit Preserve Rows;
+切换到另一个会话，数据消失，结构还在
+
+
+146.
+vs编译问题
+见编译问题.txt小结
+
+
+147.
+c++11 auto的使用
+a.auto声明的变量必须初始化因为auto不是一种类型，只是一个占位符，变量实际的类型完全取决于初始化的表达式的类型,所以使用auto声明
+	的变量必须初始化。
+b.auto序列定义的变量，必须为同一类型
+  例:auto a = 1,b =3.14; //error
+c.如果初始表达式是引用，会去掉引用
+  int a = 0;
+  int &ref = a;
+  auto b = ref;     b为int类型;
+  auto &c = ref;    c为int型引用
+d.如果初始表达式是const或者volatile，会去掉语义
+  const int a = 0;
+  auto b = a;        b为int型
+  const auto c = a;  c为const int
+e.如果auto带上了&，那么不会去除const语义
+  const int a = 0;
+  auto &b = a;     b为const int&
+f.初始表达式为数组的话，auto关键字推断为指针
+  int arr = {1,2,3};
+  auto a = arr; a为int*
+g.初始表达式为数组，auto带有&的话，推断为数组类型
+  int arr = {1,2,3}
+  auto &a = arr; a为int[3]
+h.函数或者模板参数不能被声明为auto
+i.auto仅仅是一个占位符，它并不是一个真正的类型，不能使用一些以类型为操作数的操作	符，如sizeof或者typeid。
+	cout << sizeof(auto) << endl;//error
+	cout << typeid(auto).name() << endl;//error
+	
+148.decltype
+decltype可以返回操作数的数据类型，而不需要初始化
+const int ci = 0,&cj = ci;
+decltype(ci) x = 0; //x是const int
+decltype(cj) y = x; //y是const int&
+decltype(cj) z;     //error引用必须初始化
+
+http://blog.csdn.net/yhl_leo/article/details/50865552
+
+
+
+	

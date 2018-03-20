@@ -18,7 +18,7 @@ class DingdianSpider(scrapy.Spider):
 
     def parse(self, response):
         #novels = response.xpath('//dl[@id="content"]/dd/table/tbody/tr[@bgcolor="#FFFFFF"]')
-        novels = response.xpath('//*[@id="content"]/dd[1]/table/tbody/tr[2]')
+        novels = response.xpath('//dl[@id="content"]/dd[1]/table/tbody/tr[2]')
         print novels.extract()
         links = response.xpath('//dl[@id="content"]/dd[@class="pages"]/div')
         category = response.xpath(r'//dl[@id="content"]/dt/text()')

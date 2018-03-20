@@ -1,0 +1,51 @@
+思维训练
+1.一个房间三个灯泡，另一个房间三个开关，两个房间可以各进入一次，怎么判断哪个开关对应哪个灯泡
+ 先开，再关，再开， 进入另一个房间摸灯泡温度。。。非算法，思维角度
+ 
+2.字符串旋转
+'abcdef' 前三位移动到末尾，'abcdef'-->'cbadef'-->'cbafed'-->'defabc'
+#include<iostream>
+using namespace std;
+
+char* reversal(char *str, int len){
+	char *st = str;
+	char *ptr = str + len -1;
+	int temp;
+	if (str){
+		while (st != (str + len / 2)){
+			*ptr = *ptr + *st;
+			*st = *ptr - *st;
+			*ptr = *ptr - *st;
+			ptr--;
+			st++;
+		}
+	}
+}
+
+char *reversal2(char* start, char* end){//函数2
+	while (start && end && start < end){
+		*start = *start + *end;
+		*end = *start - *end;;
+		*start = *start - *end;
+		start++;
+		end--;
+	}
+}
+
+void strpin(char *str,int len,int num){
+	char *str2 = str + num;
+	reversal(str, num);
+	reversal(str2, len - num);
+	reversal(str, len);
+}
+
+
+void main(){
+	char str[1024];
+	while (cin>>str){
+		if (str){
+			strpin(str,strlen(str),3);
+		}
+		cout << str << endl;
+	}
+}

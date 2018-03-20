@@ -1,0 +1,15 @@
+1.
+python的编码一般采用 utf-8 # -*- coding: utf-8 -*-
+在代码中可能由于输入的不同，从文件和cmd输入等，需要转码
+encode转成对应编码，decode从什么编码转成 unicode
+
+2.
+Learning By Doing....文档是用来查不是用来学的。我刚开始也是陷入看文档中不能自拔。真正有效的学习只有实践中填坑。
+我个人的路径是先找 Demo 模拟实践，然后找实际应用需求自己动手修改。在实际动手的过程，遇到问题通过 
+stackoverflow（要走出中文舒适区了）， 查文档等手段填坑。Demo 在zhihu查找爬虫相关就有很多资源总结，还有一个途径是在 github 
+查关键字，看一下别人的demo。最后最重要一点是，不要期待学习是线性的，有教程由初级到中级再到高级指导，刚开始入门的人都抱着这样幻
+想。解决办法是学习方法改变为以任务驱动，遇到什么学什么。遇到反爬，学middleware， 学构建random proxy， random 
+header。遇到动态页面，找 post 的 url， 或者上 Selenium遇到链接失败，考虑如何重复爬取失败页面，考虑用retry 
+middleware遇到爬取链接数量上规模后，要考虑上分布式用上scrapyredis，同时待爬取队列管理也更方便。
+爬取后后台数据存取考虑使用Mongodb，就要考虑编写pipeline处理items，存档到数据库中。遇到图片，文件想下载，
+就要学习一下image/file pipeline还有登录模拟，用start_request慢慢坑填完了，学得也差不多了
