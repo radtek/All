@@ -3,6 +3,7 @@ import scrapy
 from scrapy.http import Request
 from ..items import NovelItem
 
+print "debug999"
 
 def n1e(temp):
     if temp:
@@ -35,5 +36,4 @@ class DingdianSpider(scrapy.Spider):
             item['serialStatus'] = n1e(i.xpath('.//td[6]/text()').extract())
             item['serialNums'] = n1e(i.xpath('.//td[4]/text()').extract())
             item['category'] = category
-            print item
             yield item

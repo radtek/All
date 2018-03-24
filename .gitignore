@@ -6,5 +6,6 @@ python/.idea/.name
 python/translateTools/.idea/translateTools.iml
 python/translateTools/.idea/.name
 <<<<<<< HEAD
+=======
 python/practice/scrapy_2/novel/novel/spiders/dingdian.py
 >>>>>>> parent of 4cc8918... Merge branch 'master' of https://github.com/n1e/All
