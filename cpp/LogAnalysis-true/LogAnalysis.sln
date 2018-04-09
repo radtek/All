@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LogAnalysis", "LogAnalysis\LogAnalysis.vcproj", "{EEC0D92E-88A6-42D8-A495-912B82DB4C5A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EEC0D92E-88A6-42D8-A495-912B82DB4C5A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EEC0D92E-88A6-42D8-A495-912B82DB4C5A}.Debug|Win32.Build.0 = Debug|Win32
+		{EEC0D92E-88A6-42D8-A495-912B82DB4C5A}.Release|Win32.ActiveCfg = Release|Win32
+		{EEC0D92E-88A6-42D8-A495-912B82DB4C5A}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
