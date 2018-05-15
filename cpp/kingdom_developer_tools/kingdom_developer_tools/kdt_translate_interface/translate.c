@@ -128,12 +128,10 @@ int kdt_trans_func(trans_param *ptr_param)
 	{
 #else
 	{
-#endif
-
-		
 		bd_trans_param bd_param;
 		bd_param.init(ptr_param)
-	
+#endif
+
 		for (vector<std::string>::iterator iter = ptr_param->m_vcTarget.begin(); iter != ptr_param->m_vcTarget.end(); iter++)
 		{
 			dt_vchar2048 myurl;
@@ -148,9 +146,9 @@ int kdt_trans_func(trans_param *ptr_param)
 			if (hSession)
 				hConnect = WinHttpConnect(hSession, lpUrlComponents.lpszHostName, lpUrlComponents.nPort, 0);
 			if (hConnect)
-				hRequest = WinHttpOpenRequest(hConnect, L"GET", NULL, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE);
-			if (hRequest)
-				bResults = WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0);
+				hRequest = WinHttpOpenRequest(hConnect, L"GET", lpUrlComponents.lpszUrlPath, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE);
+			//if (hRequest)
+				//bResults = WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0);
 			if (bResults)
 				bResults = WinHttpReceiveResponse(hRequest, NULL);
 

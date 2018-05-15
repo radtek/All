@@ -344,13 +344,13 @@ DWORD WINAPI Analysis(LPVOID _ptr)
 			else if(line.find("KpmsRsGetCol(stkid)") != string::npos)
 			{
 				string::size_type pos = line.rfind("'");
-				temp = line.substr(base_point+33,pos-base_point-33-1);
+				temp = line.substr(base_point+33,pos-base_point-33);
 				set(ptr,temp,szThreadId,5);
 			}
 			else if(line.find("KpmsRsGetCol(bsflag)") != string::npos)
 			{
 				string::size_type pos = line.rfind("'");
-				temp = line.substr(base_point+34,pos-base_point-34-1);
+				temp = line.substr(base_point+34,pos-base_point-34);
 				set(ptr,temp,szThreadId,6);
 			}
 			else if(line.find("[821004]: Runtime") != string::npos)
