@@ -1,8 +1,11 @@
 #ifndef _KDT_TRANSLATE_HEAD_
 #define _KDT_TRANSLATE_HEAD_
 
+#define ATOM_BUSI_EXPORTS
+
 #include "compile_def.h"
 #include "type_def.h"
+#include "public_func.h"
 #include <vector>
 
 /* 支持语言列表
@@ -18,8 +21,8 @@ typedef struct
 	dt_vchar128			m_szSecret_key;                //密钥
 	dt_vchar2			m_szLanguageFrom;              //来源语言
 	dt_vchar2			m_szLanguageTo;                //目标语言
-	vector<std::string> m_vcTarget;                    //待翻译语句
-	vector<std::string> m_vcResult;                    //结果
+	std::vector<std::string> m_vcTarget;               //待翻译语句
+	std::vector<std::string> m_vcResult;               //结果
 } trans_param;
 
 extern "C"

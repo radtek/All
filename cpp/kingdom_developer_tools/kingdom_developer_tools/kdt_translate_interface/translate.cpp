@@ -1,12 +1,15 @@
 #ifndef  _TRANSLATE_MODULE_
 #define  _TRANSLATE_MODULE_
+
 #include <stdio.h>
 #include "kdt_translate_head.h"
 
 #ifdef  _MSC_VER
 #include<string.h>
+#include<windows.h>
 #include<winhttp.h>
-#include "WinhHttpClient.h"
+#pragma comment(lib,"winhttp.lib")
+#include "md5.h" 
 #else
 #include <curl/curl.h>
 #include <stdlib.h>
@@ -18,7 +21,7 @@
 
 typedef struct
 {
-	void init()
+	void init(trans_param *ptr)
 	{
 		appid = ptr->m_szAppId;
 		from = ptr->m_szLanguageFrom;
@@ -27,15 +30,16 @@ typedef struct
 	}
 	
 
-	void getUrl(const char* szTarget,char *szUrl,int nSize)
+	void getUrl(char* szTarget,char *szUrl,int nSize)
 	{
 		if (nSize < 256)
 			return;
 
-		strcpy(szUrl, "http://api.fanyi.baidu.com/api/trans/vip/translate?")
+		strcpy(szUrl, "http://api.fanyi.baidu.com/api/trans/vip/translate?");
 		char *q = szTarget;
 		char salt[60];
-		int a = rand();
+		//int a = rand();
+		int a = 32768;
 		sprintf(salt, "%d", a);
 		char sign[120] = "";
 		strcat(sign, appid);
@@ -44,13 +48,28 @@ typedef struct
 		strcat(sign, secret_key);
 
 		unsigned char md[16];
-		int i;
 		char tmp[3] = { '\0' }, buf[33] = { '\0' };
-		MD5((unsigned char *)sign, strlen((unsigned char *)sign), md);
-		for (i = 0; i < 16; i++){
+
+#ifdef _MSC_VER
+		wheel::MD5Context mdContext;
+		wheel::MD5Init(&mdContext);
+		wheel::MD5Update(&mdContext, (unsigned char*)sign, strlen(sign));
+		wheel::MD5Final(md,&mdContext);
+		for (int i = 0; i < 16; i++)
+		{
 			sprintf(tmp, "%2.2x", md[i]);
 			strcat(buf, tmp);
 		}
+#else
+		MD5((unsigned char *)sign, strlen((unsigned char *)sign), md);
+		for (i = 0; i < 16; i++)
+		{
+			sprintf(tmp, "%2.2x", md[i]);
+			strcat(buf, tmp);
+		}
+#endif
+		
+
 		printf("%s\n", buf);
 		strcat(szUrl, "appid=");
 		strcat(szUrl, appid);
@@ -71,8 +90,7 @@ typedef struct
 	char *from;
 	char *to;
 	char *secret_key;
-	char 
-}bd_trans_param;
+} bd_trans_param;
 
 typedef struct _URL_INFO
 {
@@ -84,7 +102,7 @@ typedef struct _URL_INFO
 	WCHAR szExtraInfo[512];
 }URL_INFO, *PURL_INFO;
 
-bool separate_url(const char* url, URL_COMPONENTSW &lpUrlComponents)
+bool separate_url(LPCWSTR url, URL_COMPONENTSW &lpUrlComponents)
 {
 	URL_INFO url_info = { 0 };
 	lpUrlComponents.dwStructSize = sizeof(lpUrlComponents);
@@ -106,7 +124,7 @@ bool separate_url(const char* url, URL_COMPONENTSW &lpUrlComponents)
 }
 
 
-int kdt_trans_func(trans_param *ptr_param)
+void kdt_trans_func(trans_param *ptr_param)
 {
 
 #ifndef _MSC_VER
@@ -118,7 +136,7 @@ int kdt_trans_func(trans_param *ptr_param)
 	DWORD dwDownloaded = 0;
 	LPSTR pszOutBuffer;
 	BOOL  bResults = FALSE;
-	HINTERNET  hSession = NULL,hConnect = NULL,hRequest = NULL;
+	HINTERNET  hSession = NULL, hConnect = NULL, hRequest = NULL;
 
 
 #endif // !_MSC_VER
@@ -128,18 +146,29 @@ int kdt_trans_func(trans_param *ptr_param)
 	{
 #else
 	{
-		bd_trans_param bd_param;
-		bd_param.init(ptr_param)
-#endif
 
-		for (vector<std::string>::iterator iter = ptr_param->m_vcTarget.begin(); iter != ptr_param->m_vcTarget.end(); iter++)
+#endif
+		bd_trans_param bd_param;
+		bd_param.init(ptr_param);
+
+		for (std::vector<std::string>::iterator iter = ptr_param->m_vcTarget.begin(); iter != ptr_param->m_vcTarget.end(); iter++)
 		{
 			dt_vchar2048 myurl;
-			bd_param.getUrl(iter->c_str(), myurl, sizeof(myurl));
+			dt_vchar512  szTarget;
+			strcpy(szTarget, iter->c_str());
+			bd_param.getUrl(szTarget, myurl, sizeof(myurl));
 
 #ifdef _MSC_VER
 			URL_COMPONENTSW lpUrlComponents = { 0 };
-			if (!separate_url(myurl, lpUrlComponents))
+			separate_url(L"https://www.csdn.net/breaksoftware/article/details/17232483", lpUrlComponents);
+			lpUrlComponents = { 0 };
+
+			WCHAR wszStr[2049];
+			memset(wszStr, 0, sizeof(wszStr));
+			MultiByteToWideChar(CP_ACP, 0, myurl, strlen(myurl) + 1, wszStr,
+				sizeof(wszStr) / sizeof(wszStr[0]));
+
+			if (!separate_url(wszStr, lpUrlComponents))
 				return;
 
 			hSession = WinHttpOpen(L"WinHTTP Example/1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
@@ -148,7 +177,7 @@ int kdt_trans_func(trans_param *ptr_param)
 			if (hConnect)
 				hRequest = WinHttpOpenRequest(hConnect, L"GET", lpUrlComponents.lpszUrlPath, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE);
 			//if (hRequest)
-				//bResults = WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0);
+			//bResults = WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0);
 			if (bResults)
 				bResults = WinHttpReceiveResponse(hRequest, NULL);
 
@@ -193,14 +222,8 @@ int kdt_trans_func(trans_param *ptr_param)
 
 			curl_easy_cleanup(curl);
 #endif // !_MSC_VER
-
-
-		
+		}
 	}
-	
-	
-
-	return 0;
 }
 
 #endif
