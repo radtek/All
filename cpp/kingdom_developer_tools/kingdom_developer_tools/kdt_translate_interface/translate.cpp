@@ -1,8 +1,9 @@
-#ifndef  _TRANSLATE_MODULE_
+﻿#ifndef  _TRANSLATE_MODULE_
 #define  _TRANSLATE_MODULE_
 
 #include <stdio.h>
 #include "kdt_translate_head.h"
+#include "string.h"
 
 #ifdef  _MSC_VER
 #include<string.h>
@@ -38,8 +39,7 @@ typedef struct
 		strcpy(szUrl, "http://api.fanyi.baidu.com/api/trans/vip/translate?");
 		char *q = szTarget;
 		char salt[60];
-		//int a = rand();
-		int a = 32768;
+		int a = rand();
 		sprintf(salt, "%d", a);
 		char sign[120] = "";
 		strcat(sign, appid);
@@ -47,14 +47,18 @@ typedef struct
 		strcat(sign, salt);
 		strcat(sign, secret_key);
 
+		char * utf_8_sign;
+		utf_8_sign = G2U(sign);
 		unsigned char md[16];
 		char tmp[3] = { '\0' }, buf[33] = { '\0' };
 
 #ifdef _MSC_VER
 		wheel::MD5Context mdContext;
 		wheel::MD5Init(&mdContext);
-		wheel::MD5Update(&mdContext, (unsigned char*)sign, strlen(sign));
+		wheel::MD5Update(&mdContext, (unsigned char*)utf_8_sign, strlen(utf_8_sign));
 		wheel::MD5Final(md,&mdContext);
+
+		delete[]utf_8_sign;
 		for (int i = 0; i < 16; i++)
 		{
 			sprintf(tmp, "%2.2x", md[i]);
@@ -102,16 +106,15 @@ typedef struct _URL_INFO
 	WCHAR szExtraInfo[512];
 }URL_INFO, *PURL_INFO;
 
-bool separate_url(LPCWSTR url, URL_COMPONENTSW &lpUrlComponents)
+bool separate_url(LPCWSTR url,const int nSize,URL_INFO &lpUrlInfo,URL_COMPONENTSW &lpUrlComponents)
 {
-	URL_INFO url_info = { 0 };
 	lpUrlComponents.dwStructSize = sizeof(lpUrlComponents);
-	lpUrlComponents.lpszExtraInfo = url_info.szExtraInfo;
-	lpUrlComponents.lpszHostName = url_info.szHostName;
-	lpUrlComponents.lpszPassword = url_info.szPassword;
-	lpUrlComponents.lpszScheme = url_info.szScheme;
-	lpUrlComponents.lpszUrlPath = url_info.szUrlPath;
-	lpUrlComponents.lpszUserName = url_info.szUserName;
+	lpUrlComponents.lpszExtraInfo = lpUrlInfo.szExtraInfo;
+	lpUrlComponents.lpszHostName = lpUrlInfo.szHostName;
+	lpUrlComponents.lpszPassword = lpUrlInfo.szPassword;
+	lpUrlComponents.lpszScheme = lpUrlInfo.szScheme;
+	lpUrlComponents.lpszUrlPath = lpUrlInfo.szUrlPath;
+	lpUrlComponents.lpszUserName = lpUrlInfo.szUserName;
 
 	lpUrlComponents.dwExtraInfoLength =
 		lpUrlComponents.dwHostNameLength =
@@ -120,9 +123,24 @@ bool separate_url(LPCWSTR url, URL_COMPONENTSW &lpUrlComponents)
 		lpUrlComponents.dwUrlPathLength =
 		lpUrlComponents.dwUserNameLength = 512;
 
-	return WinHttpCrackUrl(url, 0, ICU_ESCAPE, &lpUrlComponents);
+	return WinHttpCrackUrl(url, nSize, ICU_ESCAPE, &lpUrlComponents);
 }
 
+bool parseResult(char *Resourcestr,char *destStr)
+{
+	char *src  = strstr(Resourcestr, "\"dst\":\"");
+	char *dest = destStr;
+
+	if (src)
+	{
+		src += 7;
+		while (*src != '\"')
+			*dest++ = *src++;
+		*dest = '\0';
+		return true;
+	}
+	return false;
+}
 
 void kdt_trans_func(trans_param *ptr_param)
 {
@@ -159,27 +177,45 @@ void kdt_trans_func(trans_param *ptr_param)
 			bd_param.getUrl(szTarget, myurl, sizeof(myurl));
 
 #ifdef _MSC_VER
+
+			URL_INFO url_info = { 0 };
 			URL_COMPONENTSW lpUrlComponents = { 0 };
-			separate_url(L"https://www.csdn.net/breaksoftware/article/details/17232483", lpUrlComponents);
-			lpUrlComponents = { 0 };
 
 			WCHAR wszStr[2049];
 			memset(wszStr, 0, sizeof(wszStr));
 			MultiByteToWideChar(CP_ACP, 0, myurl, strlen(myurl) + 1, wszStr,
 				sizeof(wszStr) / sizeof(wszStr[0]));
 
-			if (!separate_url(wszStr, lpUrlComponents))
+			if (!separate_url(wszStr, sizeof(wszStr), url_info, lpUrlComponents))
 				return;
 
-			hSession = WinHttpOpen(L"WinHTTP Example/1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
+			//此处可以优化，把建立连接放到外层
+			hSession = WinHttpOpen(NULL, WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
 			if (hSession)
 				hConnect = WinHttpConnect(hSession, lpUrlComponents.lpszHostName, lpUrlComponents.nPort, 0);
 			if (hConnect)
-				hRequest = WinHttpOpenRequest(hConnect, L"GET", lpUrlComponents.lpszUrlPath, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE);
-			//if (hRequest)
-			//bResults = WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0);
+			{
+				std::wstring wstrUrl = lpUrlComponents.lpszUrlPath;
+				wstrUrl += lpUrlComponents.lpszExtraInfo;
+				//WINHTTP_FLAG_SECURE HTTPS
+				hRequest = WinHttpOpenRequest(hConnect, L"GET", wstrUrl.c_str(), NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, 0);
+				
+				/*
+				DWORD dwFlags;
+				DWORD dwBuffLen = sizeof(dwFlags);
+				WinHttpQueryOption(hRequest, WINHTTP_OPTION_SECURITY_FLAGS,(LPVOID)&dwFlags, &dwBuffLen);
+				dwFlags |= SECURITY_FLAG_IGNORE_UNKNOWN_CA;
+				dwFlags |= SECURITY_FLAG_IGNORE_CERT_DATE_INVALID;
+				dwFlags |= SECURITY_FLAG_IGNORE_CERT_CN_INVALID;
+				
+				WinHttpSetOption(hRequest, WINHTTP_OPTION_SECURITY_FLAGS,&dwFlags, sizeof(dwFlags));*/
+			}
+			if (hRequest)
+				bResults = WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0);
 			if (bResults)
 				bResults = WinHttpReceiveResponse(hRequest, NULL);
+			else
+				ptr_param->m_nErrorCode = GetLastError();
 
 			if (bResults)
 			{
@@ -187,29 +223,28 @@ void kdt_trans_func(trans_param *ptr_param)
 				{
 					dwSize = 0;
 					if (!WinHttpQueryDataAvailable(hRequest, &dwSize))
-						printf("Error %u in WinHttpQueryDataAvailable.\n",
-						GetLastError());
+						ptr_param->m_nErrorCode = GetLastError();
+
+					if (dwSize == 0)
+						break;
+
 					pszOutBuffer = new char[dwSize + 1];
-					if (!pszOutBuffer)
-					{
-						printf("Out of memory\n");
-						dwSize = 0;
-					}
+					ZeroMemory(pszOutBuffer, dwSize + 1);
+
+					if (!WinHttpReadData(hRequest, (LPVOID)pszOutBuffer, dwSize, &dwDownloaded))
+						ptr_param->m_nErrorCode = GetLastError();
 					else
 					{
-						ZeroMemory(pszOutBuffer, dwSize + 1);
-						if (!WinHttpReadData(hRequest, (LPVOID)pszOutBuffer,
-							dwSize, &dwDownloaded))
-							printf("Error %u in WinHttpReadData.\n", GetLastError());
-						else
-							printf("%s", pszOutBuffer);
-						delete[] pszOutBuffer;
+						dt_vchar2048 strResult;
+						memset(strResult, 0, sizeof(strResult));
+						parseResult(pszOutBuffer, strResult);
+						ptr_param->m_vcResult.push_back(std::string(strResult));
 					}
+
+					delete[] pszOutBuffer;
 				} while (dwSize > 0);
 			}
 
-			if (!bResults)
-				printf("Error %d has occurred.\n", GetLastError());
 			if (hRequest) WinHttpCloseHandle(hRequest);
 			if (hConnect) WinHttpCloseHandle(hConnect);
 			if (hSession) WinHttpCloseHandle(hSession);
