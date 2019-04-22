@@ -30,7 +30,7 @@ void parse_url(const string& raw_url, tagUrlInfo &info)
 	cout << "[" << raw_url << "]" << endl;
 	cout << "protocol: " << info.protocol << endl;
 	cout << "domain: " << info.domain << endl;
-	cout << "port: " << info.port << endl;-s
+	cout << "port: " << info.port << endl;
 	cout << "path: " << info.path << endl;
 	cout << "query: " << info.query << endl;
 }
@@ -39,5 +39,5 @@ void parse_url(const string& raw_url, tagUrlInfo &info)
 void parseUrl(const char *url)
 {
 	URLINFO info = ParseURL(url);
-
+	socket sock = Socket
 }
