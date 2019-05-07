@@ -1,18 +1,28 @@
 #include<unistd.h>
 #include<time.h>
 #include<iostream>
-void func(void *)
+#include<stdio.h>
+void *func(void *)
 {
-    sleep(10);
+	for (int i = 0 ; i < 100000 ; i++)
+    		usleep(10);
 };
 
 int main()
 {
     clock_t begin_t,end_t;
+    void *status;
     pthread_t thrd_1;
     begin_t = clock();
-    pthread_create(&thrd_1, NULL, (void *)&func, NULL);
+    pthread_create(&thrd_1, NULL, func, NULL);
     sleep(3);
     end_t = clock();
-    std::cout << "diff between begin and end : " << (end_t - begin_t) << std::endl;
+    printf("begin : %ld\n",begin_t);
+    printf("end : %ld\n",end_t);
+    std::cout << "per_sec: " << CLOCKS_PER_SEC << std::endl;
+    std::cout << "diff between begin and end : " << (double)((end_t - begin_t)/(double)CLOCKS_PER_SEC) << std::endl;
+    pthread_join(thrd_1, &status);
+    end_t = clock();
+    printf("end2 : %ld\n",end_t);
+    return 0;
 }
