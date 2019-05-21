@@ -43,7 +43,7 @@ void ADDWLock(atomic_t* lock)
 			return;
 		else
 		{
-			TRY_LOOP()
+			TRY_LOOP(1024)
 			if (*lock == 0 && ATOM_CMP_SET(lock, 0, RWLOCK_WLOCK))
 				return;
 			END_LOOP()
@@ -61,7 +61,7 @@ void ADDRLock(atomic_t* lock)
 			return;
 		else
 		{
-			TRY_LOOP()
+			TRY_LOOP(1024)
 			reader = *lock;
 			if (reader != RWLOCK_WLOCK && ATOM_CMP_SET(lock, reader, reader + 1))
 				return;
@@ -86,7 +86,7 @@ void UnLock(atomic_t* lock)
 			if (ATOM_CMP_SET(lock, reader, reader - 1))
 				return;
 
-			reader = *lock;//·à?12￠·￠?a?á??μ?ê±oò,?a???′éúD§ ?úreader = *lockoó￡?óDáíò?????3ì?aá??á??,??±?′??a??ê??TD§μ?
+			reader = *lock;//防止并发解读锁的时候,解锁未生效 在reader = *lock后，有另一个线程解了读锁,那本次解锁是无效的
 		}
 	}
 }
